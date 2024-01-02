@@ -1,0 +1,1 @@
+export const IRYS_CONNECTOR = 'IRYS_CONNECTOR';
