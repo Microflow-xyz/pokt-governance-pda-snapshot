@@ -4,10 +4,11 @@
   "trailingComma": "all",
   "importOrder": [
     "<THIRD_PARTY_MODULES>",
+    "^@common",
     "(interface|type)",
     "module-definition",
     "module",
-    "(service|provider|retriever)",
+    "(service|provider|retriever|filter)",
     "controller",
     "constant",
     "^[./]"
