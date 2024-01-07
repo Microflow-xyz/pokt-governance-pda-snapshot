@@ -38,7 +38,7 @@ import { CoreService } from './core.service';
                       serviceName:
                         grafanaServiceName?.length > 0
                           ? grafanaServiceName
-                          : 'pocket-backend',
+                          : 'pokt-governance-backend',
                     },
                   }),
                   winstonConsoleTransport,
