@@ -48,26 +48,20 @@ export class PDAService {
   private getIssuedPDAsGQL() {
     return `
     query getPDAs($org_gateway_id: String!, $take: Float!, $skip: Float!) {
-        issuedPDAs(
-            filter: { organization: { type: GATEWAY_ID, value: $org_gateway_id } }
-            take: $take
-            skip: $skip
-            order: { issuanceDate: "ASC" }
-        ) {
-            id
-            arweaveUrl
-            dataAsset {
-                claim
-                claimArray {
-                    type
-                    value
-                    property
-                }
-                owner {
-                    gatewayId
-                }
-            }
-        }
+      issuedPDAs(
+          filter: { organization: { type: GATEWAY_ID, value: $org_gateway_id } }
+          take: $take
+          skip: $skip
+          order: { issuanceDate: "DESC" }
+      ) {
+          status
+          dataAsset {
+              claim
+              owner {
+                  gatewayId
+              }
+          }
+      }
     }`;
   }
 

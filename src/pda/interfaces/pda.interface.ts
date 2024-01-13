@@ -1,13 +1,31 @@
+import {
+  BuilderPDASubType,
+  CitizenPDASubType,
+  PDAType,
+  StakerPDASubType,
+  StakerPDAType,
+} from '../types/pda.type';
+
+interface PDAClaimBase<Type extends PDAType> {
+  point: number;
+  pdaType: Type;
+  pdaSubtype: Type extends 'citizen'
+    ? CitizenPDASubType
+    : Type extends 'builder'
+      ? BuilderPDASubType
+      : StakerPDASubType;
+}
+
+interface StakerPDAClaim {
+  type: StakerPDAType;
+}
 export interface IssuedPDA {
-  id: string;
-  arweaveUrl: string;
+  status: 'Valid' | 'Suspended' | 'Revoked' | 'Expired';
   dataAsset: {
-    claim: Record<string, string>;
-    claimArray: Array<{
-      type: string;
-      value: string;
-      property: string;
-    }>;
+    claim:
+      | PDAClaimBase<'citizen'>
+      | PDAClaimBase<'builder'>
+      | (PDAClaimBase<'staker'> & StakerPDAClaim);
     owner: {
       gatewayId: string;
     };
