@@ -1,30 +1,42 @@
 import { Injectable } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ArweaveProvider } from '@common/arweave/arweave.provider';
+import { WinstonProvider } from '@common/winston/winston.provider';
 import { PDAService } from './pda/pda.service';
 import { ScoringService } from './scoring/scoring.service';
+import { StoreService } from './store/store.service';
 
 @Injectable()
 export class CoreService {
   constructor(
     private readonly pdaService: PDAService,
     private readonly scoringService: ScoringService,
-    private readonly arweaveProvider: ArweaveProvider,
+    private readonly storeService: StoreService,
+    private readonly logger: WinstonProvider,
   ) {}
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handler() {
+    this.logger.log('The job executed', CoreService.name);
     // Get all issued PDAs
     const allPDAs = await this.pdaService.getIssuedPDAs();
+
+    this.logger.debug(
+      'All issued PDAs:\n' + JSON.stringify(allPDAs),
+      CoreService.name,
+    );
     // calculate scores
     const scores = this.scoringService.calculateScores(allPDAs);
 
-    // const transaction_id = await this.arweaveProvider.storeData(allPDAs, [
-    //   { name: 'Content-Type', value: 'application/json' },
-    //   { name: 'Application-ID', value: 'POKT-NETWORK-PDA-SCORING-SYSTEM' },
-    //   { name: 'Unix-Timestamp', value: String(moment().unix()) },
-    // ]);
+    this.logger.debug(
+      "All issued PDAs' scores:\n" + JSON.stringify(scores),
+      CoreService.name,
+    );
+    // Store Scores & PDAs
+    const arweaveURL = await this.storeService.storeScores(scores);
 
-    console.log('scores:', scores);
+    this.logger.log(
+      `The job finished. storage URL is (${arweaveURL})`,
+      CoreService.name,
+    );
   }
 }

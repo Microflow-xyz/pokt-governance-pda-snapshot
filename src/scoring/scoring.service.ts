@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import lodash from 'lodash';
+import { PDAScores } from '@common/interfaces/common.interface';
 import { WinstonProvider } from '@common/winston/winston.provider';
 import { IssuedPDA } from '../pda/interfaces/pda.interface';
-import { DomainBlock, PDAScoresOutput } from './interfaces/scoring.interface';
+import { ScoringDomainBlock } from './interfaces/scoring.interface';
 import { ScoringStakerSubType } from './types/scoring.type';
 import {
   BuilderPDASubType,
@@ -14,14 +15,17 @@ import {
 export class ScoringService {
   constructor(private readonly logger: WinstonProvider) {}
 
-  private appendGatewayID(scoresOutput: PDAScoresOutput, gatewayID: string) {
+  private appendGatewayID(
+    scoresOutput: PDAScores<ScoringDomainBlock>,
+    gatewayID: string,
+  ) {
     if (!(gatewayID in scoresOutput)) {
       scoresOutput[gatewayID] = {};
     }
   }
 
   private appendDomainBlock(
-    scoresOutput: PDAScoresOutput,
+    scoresOutput: PDAScores<ScoringDomainBlock>,
     gatewayID: string,
     domain: PDAType,
   ) {
@@ -38,7 +42,7 @@ export class ScoringService {
   }
 
   private appendStackerSubBlock(
-    scoresOutput: PDAScoresOutput,
+    scoresOutput: PDAScores<ScoringDomainBlock>,
     gatewayID: string,
     subType: Lowercase<StakerPDASubType>,
   ) {
@@ -51,7 +55,7 @@ export class ScoringService {
   }
 
   private calculateCitizensPoint(
-    scoresOutput: PDAScoresOutput,
+    scoresOutput: PDAScores<ScoringDomainBlock>,
     gatewayID: string,
     PDA: IssuedPDA,
   ) {
@@ -88,7 +92,7 @@ export class ScoringService {
   }
 
   private calculateBuildersPoint(
-    scoresOutput: PDAScoresOutput,
+    scoresOutput: PDAScores<ScoringDomainBlock>,
     gatewayID: string,
     PDA: IssuedPDA,
   ) {
@@ -143,7 +147,7 @@ export class ScoringService {
   }
 
   private calculateStakersPoint(
-    scoresOutput: PDAScoresOutput,
+    scoresOutput: PDAScores<ScoringDomainBlock>,
     gatewayID: string,
     PDA: IssuedPDA,
   ) {
@@ -152,7 +156,9 @@ export class ScoringService {
 
     this.appendStackerSubBlock(scoresOutput, gatewayID, PDA_SUB_TYPE);
 
-    const pointer = scoresOutput[gatewayID].staker[PDA_SUB_TYPE] as DomainBlock;
+    const pointer = scoresOutput[gatewayID].staker[
+      PDA_SUB_TYPE
+    ] as ScoringDomainBlock;
     // Store related PDA
     pointer.PDAs.push(PDA);
 
@@ -179,8 +185,8 @@ export class ScoringService {
     }
   }
 
-  calculateScores(PDAs: Array<IssuedPDA>): PDAScoresOutput {
-    const scoresOutput: PDAScoresOutput = {};
+  calculateScores(PDAs: Array<IssuedPDA>): PDAScores<ScoringDomainBlock> {
+    const scoresOutput: PDAScores<ScoringDomainBlock> = {};
 
     for (let index = 0; index < PDAs.length; index++) {
       const PDA = PDAs[index];
