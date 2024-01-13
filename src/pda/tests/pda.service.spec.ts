@@ -5,6 +5,8 @@ import { HttpModule, HttpService } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { of } from 'rxjs';
+import { IssuedPDA } from "../interfaces/pda.interface";
+// import { result } from "lodash";
 
 
 
@@ -104,7 +106,7 @@ describe('PDAService', () => {
     describe('When getIssuedPDAsGQL method called', () => {
         let returnValue: string;
 
-        beforeAll(() => {
+        beforeEach(() => {
             returnValue = service['getIssuedPDAsGQL']();
         });
 
@@ -112,30 +114,24 @@ describe('PDAService', () => {
             expect(service['getIssuedPDAsGQL']).toBeDefined();
         });
 
-        test('Should return getSpace graphQL query', () => {
+        test('Should return getIssuedPDAs graphQL query', () => {
             expect(returnValue).toBe(
                 `
     query getPDAs($org_gateway_id: String!, $take: Float!, $skip: Float!) {
-        issuedPDAs(
-            filter: { organization: { type: GATEWAY_ID, value: $org_gateway_id } }
-            take: $take
-            skip: $skip
-            order: { issuanceDate: "ASC" }
-        ) {
-            id
-            arweaveUrl
-            dataAsset {
-                claim
-                claimArray {
-                    type
-                    value
-                    property
-                }
-                owner {
-                    gatewayId
-                }
-            }
-        }
+      issuedPDAs(
+          filter: { organization: { type: GATEWAY_ID, value: $org_gateway_id } }
+          take: $take
+          skip: $skip
+          order: { issuanceDate: "DESC" }
+      ) {
+          status
+          dataAsset {
+              claim
+              owner {
+                  gatewayId
+              }
+          }
+      }
     }`
             );
         });
@@ -189,9 +185,48 @@ describe('PDAService', () => {
     });
 
     describe('When getIssuedPDAs methos called', () => {
+        let issuedPDA: IssuedPDA;
+        let result: Promise<IssuedPDA[]> ;
+        let returnValue;
+        beforeEach( async () => {
+            issuedPDA = {
+                status : 'Valid',
+                dataAsset : {
+                    claim: {
+                        point:17,
+                        pdaType:'citizen',
+                        pdaSubtype: 'POKT DAO',
+                    },
+                    owner: {
+                        gatewayId:'17'
+                    }
+                    
+                }
+            };
+            jest.spyOn(service, 'getIssuedPDAs').mockResolvedValue([issuedPDA]);
+            returnValue = await service.getIssuedPDAs()
+        })
+
         test('Should be defined', () => {
             expect(service.getIssuedPDAs).toBeDefined();
-        })
+        });
+
+        test('Should return value successfully', () => {
+            expect(returnValue).toEqual([issuedPDA])
+        });
+
+        test('Should return the correct number of issued PDAs', () => {
+            expect(returnValue.length).toEqual(1);
+          });
+
+        test('Should return the correct data for each issued PDA', () =>{
+            expect(returnValue[0].status).toBe('Valid');
+            expect(returnValue[0].dataAsset.owner.gatewayId).toBe('17');
+            expect(returnValue[0].dataAsset.claim.point).toBe(17);
+            expect(returnValue[0].dataAsset.claim.pdaType).toBe('citizen');
+            expect(returnValue[0].dataAsset.claim.pdaSubtype).toBe('POKT DAO');
+        });
+
     })
 
 
