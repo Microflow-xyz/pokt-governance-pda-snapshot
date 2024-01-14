@@ -3,13 +3,13 @@ import lodash from 'lodash';
 import { PDAScores } from '@common/interfaces/common.interface';
 import { WinstonProvider } from '@common/winston/winston.provider';
 import { IssuedPDA } from '../pda/interfaces/pda.interface';
-import { ScoringDomainBlock } from './interfaces/scoring.interface';
-import { ScoringStakerSubType } from './types/scoring.type';
 import {
   BuilderPDASubType,
   PDAType,
   StakerPDASubType,
-} from 'src/pda/types/pda.type';
+} from '../pda/types/pda.type';
+import { ScoringDomainBlock } from './interfaces/scoring.interface';
+import { ScoringStakerSubType } from './types/scoring.type';
 
 @Injectable()
 export class ScoringService {
