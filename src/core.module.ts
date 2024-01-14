@@ -4,12 +4,12 @@ import { APP_FILTER } from '@nestjs/core';
 import { ScheduleModule } from '@nestjs/schedule';
 import { format } from 'winston';
 import LokiTransport from 'winston-loki';
-import { ArweaveModule } from '@common/arweave/arweave.module';
 import { AllExceptionsFilter } from '@common/filters/all-exception.filter';
 import { WinstonModule } from '@common/winston/winston.module';
 import { winstonConsoleTransport } from '@common/winston/winston.utils';
 import { PDAModule } from './pda/pda.module';
 import { ScoringModule } from './scoring/scoring.module';
+import { StoreModule } from './store/store.module';
 import { CoreService } from './core.service';
 
 @Module({
@@ -49,25 +49,9 @@ import { CoreService } from './core.service';
       inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
-    ArweaveModule.forRootAsync({
-      useFactory: (config: ConfigService) => {
-        return {
-          url: config.get<string>('IRYS_NETWORK_URL'),
-          token: 'matic',
-          key: config.get<string>('EVM_WALLET_PRIVATE_KEY'),
-          ...(config.get<string>('NODE_ENV') !== 'production'
-            ? {
-                config: {
-                  providerUrl: config.get<string>('IRYS_RPC_PROVIDER'),
-                },
-              }
-            : null),
-        };
-      },
-      inject: [ConfigService],
-    }),
     PDAModule,
     ScoringModule,
+    StoreModule,
   ],
   providers: [
     { provide: APP_FILTER, useClass: AllExceptionsFilter },
