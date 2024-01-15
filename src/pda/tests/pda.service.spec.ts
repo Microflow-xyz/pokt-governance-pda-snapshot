@@ -5,118 +5,116 @@ import { HttpModule, HttpService } from '@nestjs/axios';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AxiosResponse } from 'axios';
 import { of } from 'rxjs';
-import { IssuedPDA } from "../interfaces/pda.interface";
-// import { result } from "lodash";
-
-
+import { 
+	IssuedPDACountResponse,
+	IssuedPDA,
+	IssuedPDAsResponse 
+	} from "../interfaces/pda.interface";
 
 jest.mock('@common/winston/winston.provider');
 
 describe('PDAService', () => {
-    let service: PDAService;
-    let axios: HttpService;
-    let config: ConfigService;
+	let service: PDAService;
+	let axios: HttpService;
+	let config: ConfigService;
 
 
-    beforeEach(async () => {
-        const module: TestingModule = await Test.createTestingModule({
-            imports: [HttpModule, ConfigModule],
-            providers: [WinstonProvider, PDAService],
-        }).compile();
+	beforeEach(async () => {
+		const module: TestingModule = await Test.createTestingModule({
+			imports: [HttpModule, ConfigModule],
+			providers: [WinstonProvider, PDAService],
+		}).compile();
 
-        service = module.get<PDAService>(PDAService);
-        axios = module.get<HttpService>(HttpService);
-        config = module.get<ConfigService>(ConfigService);
+		service = module.get<PDAService>(PDAService);
+		axios = module.get<HttpService>(HttpService);
+		config = module.get<ConfigService>(ConfigService);
 
-        jest.clearAllMocks();
-    });
+		jest.clearAllMocks();
+	});
 
-    test('Should be defined', () => {
-        expect(service).toBeDefined();
-    });
+	test('Should be defined', () => {
+		expect(service).toBeDefined();
+	});
 
-    describe('When the request method called', () => {
-        let query: string;
-        let axiosResponse: AxiosResponse;
-        let variables: Record<string, any>;
-        let returnValue: Record<string, any>;
+	describe('When the request method called', () => {
+		let query: string;
+		let axiosResponse: AxiosResponse;
+		let variables: Record<string, any>;
+		let returnValue: Record<string, any>;
 
-        beforeEach(async () => {
-            query = 'query { test { test } }';
-            variables = {};
-            axiosResponse = {
-                data: {},
-                status: 200,
-                statusText: 'OK',
-                headers: undefined,
-                config: undefined,
-            };
-
-
-            jest.spyOn(config, 'get').mockReturnValue('');
-            jest.spyOn(axios, 'post').mockReturnValue(of(axiosResponse));
+		beforeEach(async () => {
+			query = 'query { test { test } }';
+			variables = {};
+			axiosResponse = {
+				data: {},
+				status: 200,
+				statusText: 'OK',
+				headers: undefined,
+				config: undefined,
+			};
 
 
-
-            returnValue = await service['request'](query, variables);
-
-        });
-
-        test('Should be defined', () => {
-            expect(service['request']).toBeDefined();
-        });
-
-
-        test('Should call get method from config', () => {
-            expect(config.get).toHaveBeenCalledWith('MYGATEWAY_ENDPOINT_URL');
-        });
-
-        test('Should call get method from config', () => {
-            expect(config.get).toHaveBeenCalledWith('MYGATEWAY_AUTHENTICATION_TOKEN');
-        });
-
-        test('Should call get method from config', () => {
-            expect(config.get).toHaveBeenCalledWith('MYGATEWAY_API_KEY');
-        });
+			jest.spyOn(config, 'get').mockReturnValue('');
+			jest.spyOn(axios, 'post').mockReturnValue(of(axiosResponse));
 
 
 
-        test('Should call post from axios with the correct parameters', () => {
-            expect(axios.post).toHaveBeenCalledWith(
-                '',
-                {
-                    query,
-                    variables,
-                },
-                {
-                    headers: {
-                        Authorization: 'Bearer ',
-                        'x-api-key': '',
-                        'Content-Type': 'application/json',
-                    },
-                },
-            );
-        });
+			returnValue = await service['request'](query, variables);
 
-        test('Should return body from http response', () => {
-            expect(returnValue).toEqual(axiosResponse.data);
-        });
-    });
+		});
 
-    describe('When getIssuedPDAsGQL method called', () => {
-        let returnValue: string;
+		test('Should be defined', () => {
+			expect(service['request']).toBeDefined();
+		});
 
-        beforeEach(() => {
-            returnValue = service['getIssuedPDAsGQL']();
-        });
+		test('Should call get method from config', () => {
+			expect(config.get).toHaveBeenCalledWith('MYGATEWAY_ENDPOINT_URL');
+		});
 
-        test('Should be defined', () => {
-            expect(service['getIssuedPDAsGQL']).toBeDefined();
-        });
+		test('Should call get method from config', () => {
+			expect(config.get).toHaveBeenCalledWith('MYGATEWAY_AUTHENTICATION_TOKEN');
+		});
 
-        test('Should return getIssuedPDAs graphQL query', () => {
-            expect(returnValue).toBe(
-                `
+		test('Should call get method from config', () => {
+			expect(config.get).toHaveBeenCalledWith('MYGATEWAY_API_KEY');
+		});
+
+		test('Should call post from axios with the correct parameters', () => {
+			expect(axios.post).toHaveBeenCalledWith(
+				'',
+				{
+					query,
+					variables,
+				},
+				{
+					headers: {
+						Authorization: 'Bearer ',
+						'x-api-key': '',
+						'Content-Type': 'application/json',
+					},
+				},
+			);
+		});
+
+		test('Should return body from http response', () => {
+			expect(returnValue).toEqual(axiosResponse.data);
+		});
+	});
+
+	describe('When getIssuedPDAsGQL method called', () => {
+		let returnValue: string;
+
+		beforeAll(() => {
+			returnValue = service['getIssuedPDAsGQL']();
+		});
+
+		test('Should be defined', () => {
+			expect(service['getIssuedPDAsGQL']).toBeDefined();
+		});
+
+		test('Should return getIssuedPDAs graphQL query', () => {
+			expect(returnValue).toBe(
+				`
     query getPDAs($org_gateway_id: String!, $take: Float!, $skip: Float!) {
       issuedPDAs(
           filter: { organization: { type: GATEWAY_ID, value: $org_gateway_id } }
@@ -133,101 +131,135 @@ describe('PDAService', () => {
           }
       }
     }`
-            );
-        });
+			);
+		});
 
-    });
+	});
 
-    describe('When getIssuedPDACountGQL method called', () => {
-        let returnValue: string;
+	describe('When getIssuedPDACountGQL method called', () => {
+		let returnValue: string;
 
-        beforeAll(() => {
-            returnValue = service['getIssuedPDACountGQL']();
-        });
+		beforeEach(() => {
+			returnValue = service['getIssuedPDACountGQL']();
+		});
 
-        test('Should be defined', () => {
-            expect(service['getIssuedPDACountGQL']).toBeDefined();
-        });
+		test('Should be defined', () => {
+			expect(service['getIssuedPDACountGQL']).toBeDefined();
+		});
 
-        test('Should return IssuedPDACount graphQL query', () => {
-            expect(returnValue).toBe(
-                `
+		test('Should return IssuedPDACount graphQL query', () => {
+			expect(returnValue).toBe(
+				`
     query IssuedPDAsCount($org_gateway_id: String!) {
         issuedPDAsCount(
             filter: { organization: { type: GATEWAY_ID, value: $org_gateway_id } }
         )
     }`
-            );
-        });
-    });
+			);
+		});
+	});
 
-    describe('When pagination method called', () => {
-        test("Should return pagination when max's value less or equal that 15", () => {
-            expect(service['pagination'](14)).toEqual([{ take: 14, skip: 0 }]);
-            expect(service['pagination'](15)).toEqual([{ take: 15, skip: 0 }]);
-        });
+	describe('When pagination method called', () => {
+		test("Should return pagination when max's value less or equal that 15", () => {
+			expect(service['pagination'](14)).toEqual([{ take: 14, skip: 0 }]);
+			expect(service['pagination'](15)).toEqual([{ take: 15, skip: 0 }]);
+		});
 
-        test("Should return pagination when max's value greater that 15", () => {
-            expect(service['pagination'](50)).toEqual([
-                { take: 15, skip: 0 },
-                { take: 15, skip: 15 },
-                { take: 15, skip: 30 },
-                { take: 5, skip: 45 },
-            ]);
+		test("Should return pagination when max's value greater that 15", () => {
+			expect(service['pagination'](50)).toEqual([
+				{ take: 15, skip: 0 },
+				{ take: 15, skip: 15 },
+				{ take: 15, skip: 30 },
+				{ take: 5, skip: 45 },
+			]);
 
-            expect(service['pagination'](60)).toEqual([
-                { take: 15, skip: 0 },
-                { take: 15, skip: 15 },
-                { take: 15, skip: 30 },
-                { take: 15, skip: 45 },
-            ]);
-        });
-    });
+			expect(service['pagination'](60)).toEqual([
+				{ take: 15, skip: 0 },
+				{ take: 15, skip: 15 },
+				{ take: 15, skip: 30 },
+				{ take: 15, skip: 45 },
+			]);
+		});
+	});
 
-    describe('When getIssuedPDAs methos called', () => {
-        let issuedPDA: IssuedPDA;
-        let result: Promise<IssuedPDA[]> ;
-        let returnValue;
-        beforeEach( async () => {
-            issuedPDA = {
-                status : 'Valid',
-                dataAsset : {
-                    claim: {
-                        point:17,
-                        pdaType:'citizen',
-                        pdaSubtype: 'POKT DAO',
-                    },
-                    owner: {
-                        gatewayId:'17'
-                    }
-                    
-                }
-            };
-            jest.spyOn(service, 'getIssuedPDAs').mockResolvedValue([issuedPDA]);
-            returnValue = await service.getIssuedPDAs()
-        })
+	describe('When getIssuedPDAs methos called', () => {
+		let issuedPDA: IssuedPDA;
+		let issuedPDACountResponse: IssuedPDACountResponse;
+		let PDAResponse: IssuedPDAsResponse;
+		let returnValue: Array<IssuedPDA>;
 
-        test('Should be defined', () => {
-            expect(service.getIssuedPDAs).toBeDefined();
-        });
+		beforeEach(async () => {
+			issuedPDA = {
+				status: 'Valid',
+				dataAsset: {
+					claim: {
+						point: 17,
+						pdaType: 'citizen',
+						pdaSubtype: 'POKT DAO',
+					},
+					owner: {
+						gatewayId: '17'
+					}
+				}
+			};
+			issuedPDACountResponse = {
+				data: { issuedPDAsCount: 0 }
+			};
+			PDAResponse = {
+				data: {
+					issuedPDAs: []
+				}
+			};
 
-        test('Should return value successfully', () => {
-            expect(returnValue).toEqual([issuedPDA])
-        });
+		});
 
-        test('Should return the correct number of issued PDAs', () => {
-            expect(returnValue.length).toEqual(1);
-          });
+		test('Should be defined', () => {
+			expect(service.getIssuedPDAs).toBeDefined();
+		})
 
-        test('Should return the correct data for each issued PDA', () =>{
-            expect(returnValue[0].status).toBe('Valid');
-            expect(returnValue[0].dataAsset.owner.gatewayId).toBe('17');
-            expect(returnValue[0].dataAsset.claim.point).toBe(17);
-            expect(returnValue[0].dataAsset.claim.pdaType).toBe('citizen');
-            expect(returnValue[0].dataAsset.claim.pdaSubtype).toBe('POKT DAO');
-        });
+		test("It should return an empty array when issuedPDAsCount is 0", async () => {
 
-    })
+			jest.spyOn(service as any, 'request')
+				.mockReturnValueOnce(issuedPDACountResponse);
 
+			jest.spyOn(service as any, 'request')
+				.mockReturnValueOnce(PDAResponse);
 
-})
+			returnValue = await service.getIssuedPDAs()
+			expect(returnValue).toEqual([]);
+		});
+
+		test('It should return an array of IssuedPDAs when issuedPDAsCount is not 0', async () => {
+			issuedPDACountResponse = {
+				data: { issuedPDAsCount: 1 }
+			};
+			PDAResponse = {
+				data: {
+					issuedPDAs: [issuedPDA]
+				}
+			};
+
+			jest.spyOn(service as any, 'request')
+				.mockReturnValueOnce(issuedPDACountResponse);
+
+			jest.spyOn(service as any, 'request')
+				.mockReturnValueOnce(PDAResponse);
+
+			returnValue = await service.getIssuedPDAs()
+
+			expect(returnValue).toEqual([issuedPDA])
+		});
+		test("issuedPDAsCount must be equal with number of all returned issuedPDAs", () => {
+			issuedPDACountResponse = {
+				data: { issuedPDAsCount: 1 }
+			};
+			PDAResponse = {
+				data: {
+					issuedPDAs: [issuedPDA]
+				}
+			};
+			expect(issuedPDACountResponse.data.issuedPDAsCount)
+				.toEqual(PDAResponse.data.issuedPDAs.length)
+		});
+	});
+});

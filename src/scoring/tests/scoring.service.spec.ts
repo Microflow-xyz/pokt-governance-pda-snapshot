@@ -1,3 +1,4 @@
+
 import { Test, TestingModule } from "@nestjs/testing";
 import { ScoringModule } from "../scoring.module";
 
@@ -17,5 +18,5 @@ describe('ScoringModule', () => {
     test('Should be defined', () => {
         expect(scoring).toBeDefined();
     });
-    
+
 })
