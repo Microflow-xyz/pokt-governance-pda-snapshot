@@ -249,17 +249,5 @@ describe('PDAService', () => {
 
 			expect(returnValue).toEqual([issuedPDA])
 		});
-		test("issuedPDAsCount must be equal with number of all returned issuedPDAs", () => {
-			issuedPDACountResponse = {
-				data: { issuedPDAsCount: 1 }
-			};
-			PDAResponse = {
-				data: {
-					issuedPDAs: [issuedPDA]
-				}
-			};
-			expect(issuedPDACountResponse.data.issuedPDAsCount)
-				.toEqual(PDAResponse.data.issuedPDAs.length)
-		});
 	});
 });
