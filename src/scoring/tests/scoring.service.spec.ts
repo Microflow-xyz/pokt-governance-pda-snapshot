@@ -4,10 +4,10 @@ import { ScoringService } from "../scoring.service";
 import { ScoringDomainBlock } from "../interfaces/scoring.interface";
 import { PDAScores } from "@common/interfaces/common.interface";
 import { PDAType, StakerPDASubType } from "src/pda/types/pda.type";
-// import { attempt, escape } from "lodash";
-// import { exceptions } from "winston";
-// import exp from "constants";
 import { IssuedPDA } from "src/pda/interfaces/pda.interface";
+import { sortBy } from "lodash";
+import { exceptions } from "winston";
+
 
 
 jest.mock('@common/winston/winston.provider');
@@ -22,6 +22,7 @@ describe('ScoringService', () => {
 
     scoring = module.get<ScoringService>(ScoringService);
 
+    jest.clearAllMocks();
   });
 
   test('Should be defined', () => {
@@ -206,23 +207,6 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].staker).toEqual({ "validator": { "PDAs": [], "point": 0 } })
     });
 
-    // test("should create a  Sub-block with type 'liquidity provider'", () => {
-    // //   scoresOutput = {
-    //     'gatewayID': {
-    //       staker: {
-    //         'liquidity provider': {
-    //           point: 0,
-    //           PDAs: [],
-    //         },
-    //       },
-    //     },
-    //   };
-    //   gatewayID = 'gatewayID';
-    //   subType = 'liquidity provider';
-    //   scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
-    //   expect(scoresOutput[gatewayID].staker).toEqual({"liquidity provider": {"PDAs": [], "point": 0}})
-    // });
-
     test("should create a  Sub-block with type 'gateway'", () => {
       scoresOutput = {
         'gatewayID': {
@@ -345,5 +329,212 @@ describe('ScoringService', () => {
       expect(PDAs.length).toEqual(4);
       expect(point).toEqual(1);
     })
+  });
+
+  describe('calculateBuildersPoint', () => {
+    let scoresOutput: PDAScores<ScoringDomainBlock>;
+    let gatewayID: string;
+    let PDA: IssuedPDA;
+    let PDAs: IssuedPDA[];
+
+    beforeEach(() => {
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 2,
+            pdaType: 'builder',
+            pdaSubtype: 'Bounty Hunter',
+          },
+          owner: {
+            gatewayId: 'gatewayID'
+          }
+        }
+      };
+      scoresOutput = {
+        "gatewayID": {
+          builder: {
+            point: 0,
+            PDAs: [PDA]
+          }
+        }
+      };
+      gatewayID = "gatewayID";
+      PDAs = scoresOutput[gatewayID].builder.PDAs;
+    })
+
+    test('Should be defined', () => {
+      expect(scoring['calculateBuildersPoint']).toBeDefined();
+    });
+
+    test('Should store related PDA', () => {
+
+      // Act
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+
+      // Assert
+      expect(scoresOutput[gatewayID].builder.PDAs).toContain(PDA);
+      expect(scoresOutput[gatewayID].builder.PDAs.length).toEqual(2);
+    });
+
+    test('Should calculate total points correctly', () => {
+
+      // Arrange
+      scoresOutput = {
+        gatewayID: {
+          builder: {
+            point: 5,
+            PDAs: [
+              {
+                status: 'Valid',
+                dataAsset: {
+                  claim: {
+                    point: 2,
+                    pdaType: 'builder',
+                    pdaSubtype: 'Protocol Builder',
+                  },
+                  owner: {
+                    gatewayId: 'gatewayID',
+                  },
+                },
+              },
+              {
+                status: 'Valid',
+                dataAsset: {
+                  claim: {
+                    point: 3,
+                    pdaType: 'builder',
+                    pdaSubtype: 'Priority Builder',
+                  },
+                  owner: {
+                    gatewayId: 'gatewayID',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      };
+
+      gatewayID = 'gatewayID';
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 4,
+            pdaType: 'builder',
+            pdaSubtype: 'Socket Builder',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+
+      // Act
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+
+      // Assert
+      const pointer = scoresOutput[gatewayID].builder
+      expect(pointer.point).toEqual(9);
+      expect(pointer.PDAs.length).toEqual(3)
+    });
+
+
+    test('Should set point equal 10 if point is greater than 10', () => {
+
+      // Arrange
+      scoresOutput = {
+        gatewayID: {
+          builder: {
+            point: 5,
+            PDAs: [
+              {
+                status: 'Valid',
+                dataAsset: {
+                  claim: {
+                    point: 5,
+                    pdaType: 'builder',
+                    pdaSubtype: 'Protocol Builder',
+                  },
+                  owner: {
+                    gatewayId: 'gatewayID',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      };
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 5,
+            pdaType: 'builder',
+            pdaSubtype: 'Socket Builder',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+
+      // Act
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+
+      // Assert
+      const pointer = scoresOutput[gatewayID].builder
+      expect(pointer.point).toEqual(10);
+      expect(pointer.PDAs.length).toEqual(2)
+    });
+
+
+    test('should not change points if the total is between 1 to 10', () => {
+
+      // Arrange
+      scoresOutput = {
+        gatewayID: {
+          builder: {
+            point: 5,
+            PDAs: [
+              {
+                status: 'Valid',
+                dataAsset: {
+                  claim: {
+                    point: 5,
+                    pdaType: 'builder',
+                    pdaSubtype: 'Protocol Builder',
+                  },
+                  owner: {
+                    gatewayId: 'gatewayID',
+                  },
+                },
+              },
+            ],
+          },
+        },
+      };
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 5,
+            pdaType: 'builder',
+            pdaSubtype: 'Bounty Hunter',
+          },
+          owner: {
+            gatewayId: 'gatewayID'
+          }
+        }
+      };
+      // Act
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+
+      // Assert
+      const pointer = scoresOutput[gatewayID].builder
+      expect(pointer.point).toEqual(10);
+      expect(pointer.PDAs.length).toEqual(2);
+    });
   });
 });
