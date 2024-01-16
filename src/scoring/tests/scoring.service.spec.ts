@@ -3,10 +3,9 @@ import { WinstonProvider } from '@common/winston/winston.provider';
 import { ScoringService } from "../scoring.service";
 import { ScoringDomainBlock } from "../interfaces/scoring.interface";
 import { PDAScores } from "@common/interfaces/common.interface";
-import { PDAType, StakerPDASubType } from "src/pda/types/pda.type";
-import { IssuedPDA } from "src/pda/interfaces/pda.interface";
-import { sortBy } from "lodash";
-import { exceptions } from "winston";
+import { PDAType, StakerPDASubType } from "../../pda/types/pda.type";
+import { IssuedPDA } from "../../pda/interfaces/pda.interface";
+
 
 
 
@@ -14,6 +13,7 @@ jest.mock('@common/winston/winston.provider');
 
 describe('ScoringService', () => {
   let scoring: ScoringService;
+  let logger: WinstonProvider;
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
@@ -21,6 +21,7 @@ describe('ScoringService', () => {
     }).compile();
 
     scoring = module.get<ScoringService>(ScoringService);
+    logger = module.get<WinstonProvider>(WinstonProvider);
 
     jest.clearAllMocks();
   });
@@ -535,6 +536,142 @@ describe('ScoringService', () => {
       const pointer = scoresOutput[gatewayID].builder
       expect(pointer.point).toEqual(10);
       expect(pointer.PDAs.length).toEqual(2);
+    });
+  });
+
+  describe('calculateStakersPoint', () => {
+    let scoresOutput: PDAScores<ScoringDomainBlock>;
+    let gatewayID: string;
+    let PDA: IssuedPDA;
+    let PDAs: IssuedPDA[];
+
+    beforeEach(() => {
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 4,
+            pdaType: 'staker',
+            pdaSubtype: 'Validator',
+            type: 'custodian'
+          },
+          owner: {
+            gatewayId: 'gatewayID'
+          }
+        }
+      };
+      scoresOutput = {
+        'gatewayID': {
+          staker: {
+            validator: {
+              point: 0,
+              PDAs: [],
+            },
+          },
+        },
+      };
+      gatewayID = "gatewayID";
+    })
+
+    test('Should be defined', () => {
+      expect(scoring['calculateStakersPoint']).toBeDefined()
+    });
+
+
+    test('Should store related PDA', () => {
+
+      // Act
+      scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
+
+      // Assert
+      expect(scoresOutput[gatewayID].staker.validator.PDAs).toContain(PDA);
+      expect(scoresOutput[gatewayID].staker.validator.PDAs.length).toEqual(1);
+    });
+
+    test("The square root of the sum of PDA points should be assigned as the point value when the PDA_SUB_TYPE is equal to 'validator'", () => {
+
+      // Act
+      scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
+
+      // Assert
+      const pointer = scoresOutput[gatewayID].staker.validator;
+      expect(pointer.point).toEqual(2)
+    });
+
+    test("Sum of PDA points should be assigned as the point value when the PDA_SUB_TYPE is equal to 'gateway'", () => {
+
+      // Arrange
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 4,
+            pdaType: 'staker',
+            pdaSubtype: 'Gateway',
+            type: 'custodian'
+          },
+          owner: {
+            gatewayId: 'gatewayID'
+          }
+        }
+      };
+      scoresOutput = {
+        'gatewayID': {
+          staker: {
+            gateway: {
+              point: 4,
+              PDAs: [{
+                status: 'Valid',
+                dataAsset: {
+                  claim: {
+                    point: 4,
+                    pdaType: 'staker',
+                    pdaSubtype: 'Gateway',
+                    type: 'custodian'
+                  },
+                  owner: {
+                    gatewayId: 'gatewayID'
+                  }
+                }
+              }],
+            },
+          },
+        },
+      };
+
+      // Act
+      scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
+      const pointer = scoresOutput[gatewayID].staker.gateway;
+      expect(pointer.point).toEqual(8);
+      expect(pointer.PDAs.length).toEqual(2);
+    });
+
+    test('Should call warm method from logger when PDA_SUB_TYPE is equal to "liquidity provider"', () => {
+      
+      // Arrange
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 4,
+            pdaType: 'staker',
+            pdaSubtype: 'Liquidity Provider',
+            type: 'custodian'
+          },
+          owner: {
+            gatewayId: 'gatewayID'
+          }
+        }
+      };
+
+      // Act
+      scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
+      
+      // Assert
+      expect(logger.warn).toHaveBeenCalledWith(
+        `Skipped PDA sub type (liquidity provider) for staker`,
+        ScoringService.name,
+      );
     });
   });
 });
