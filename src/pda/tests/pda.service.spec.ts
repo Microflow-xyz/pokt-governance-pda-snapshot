@@ -3,15 +3,12 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AxiosResponse } from 'axios';
 import { of } from 'rxjs';
-import { WinstonProvider } from '@common/winston/winston.provider';
 import {
   IssuedPDACountResponse,
   IssuedPDA,
   IssuedPDAsResponse,
 } from '../interfaces/pda.interface';
 import { PDAService } from '../pda.service';
-
-jest.mock('@common/winston/winston.provider');
 
 describe('PDAService', () => {
   let service: PDAService;
@@ -21,7 +18,7 @@ describe('PDAService', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [HttpModule, ConfigModule],
-      providers: [WinstonProvider, PDAService],
+      providers: [PDAService],
     }).compile();
 
     service = module.get<PDAService>(PDAService);
