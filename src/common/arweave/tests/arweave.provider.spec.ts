@@ -30,6 +30,7 @@ describe('Arweave Provider', () => {
   });
 
   test('Should be defined', () => {
+    // Assert
     expect(provider).toBeDefined();
   });
 
@@ -62,6 +63,7 @@ describe('Arweave Provider', () => {
           value: 'vaue',
         },
       ];
+
       // Assert
       expect(provider['calculateSizeOfData'](data, tags)).toEqual(20);
     });
@@ -69,14 +71,13 @@ describe('Arweave Provider', () => {
 
   describe('fundNodeBasedOnSize', () => {
     let size: number;
-    let amount: any;
     test('Should be defined', () => {
       expect(provider['fundNodeBasedOnSize']).toBeDefined();
     });
     test('Should call getPrice with correct paremeter', () => {
       // Arrange
       size = 10;
-      amount = 10;
+
       // Act
       provider['fundNodeBasedOnSize'](size);
 
@@ -90,9 +91,11 @@ describe('Arweave Provider', () => {
     let tags: Array<ArweaveTag>;
     let returnValue;
     test('Should be defined', () => {
+      // Assert
       expect(provider.storeData).toBeDefined();
     });
     test('Should return "mockedTransactionId"', async () => {
+      // Arrange
       data = { id: 'id' };
       tags = [
         {
@@ -100,7 +103,11 @@ describe('Arweave Provider', () => {
           value: 'vaue',
         },
       ];
+
+      // Act
       returnValue = await provider.storeData(data, tags);
+
+      // Assert
       expect(returnValue).toBe('mockedTransactionId');
     });
   });
