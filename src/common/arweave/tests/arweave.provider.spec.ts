@@ -16,7 +16,9 @@ describe('Arweave Provider', () => {
           useValue: {
             getPrice: jest.fn(),
             fund: jest.fn(),
-            upload: jest.fn(),
+            upload: jest.fn(() =>
+              Promise.resolve({ id: 'mockedTransactionId' }),
+            ),
           },
         },
         ArweaveProvider,
@@ -62,6 +64,44 @@ describe('Arweave Provider', () => {
       ];
       // Assert
       expect(provider['calculateSizeOfData'](data, tags)).toEqual(20);
+    });
+  });
+
+  describe('fundNodeBasedOnSize', () => {
+    let size: number;
+    let amount: any;
+    test('Should be defined', () => {
+      expect(provider['fundNodeBasedOnSize']).toBeDefined();
+    });
+    test('Should call getPrice with correct paremeter', () => {
+      // Arrange
+      size = 10;
+      amount = 10;
+      // Act
+      provider['fundNodeBasedOnSize'](size);
+
+      // Assert
+      expect(irys.getPrice).toHaveBeenCalledWith(size);
+    });
+  });
+
+  describe('storeData', () => {
+    let data: Record<string, any>;
+    let tags: Array<ArweaveTag>;
+    let returnValue;
+    test('Should be defined', () => {
+      expect(provider.storeData).toBeDefined();
+    });
+    test('Should return "mockedTransactionId"', async () => {
+      data = { id: 'id' };
+      tags = [
+        {
+          name: 'name',
+          value: 'vaue',
+        },
+      ];
+      returnValue = await provider.storeData(data, tags);
+      expect(returnValue).toBe('mockedTransactionId');
     });
   });
 });
