@@ -85,7 +85,7 @@ describe('store.service', () => {
       expect(config.get).toHaveBeenCalledWith('ARWEAVE_BASE_URL');
     });
 
-    test('Should storePDABlock when domain is "biulder"', () => {
+    test('Should storeData when domain is "biulder"', () => {
       // Arrange
       PDA = {
         status: 'Valid',
@@ -114,7 +114,7 @@ describe('store.service', () => {
       expect(arweave['storeData']).toHaveBeenCalled();
     });
 
-    test('Should storePDABlock when domain is "staker(Validator)"', () => {
+    test('Should call storeData when domain is "staker(Validator)"', () => {
       // Arrange
       PDA = {
         status: 'Valid',
@@ -146,7 +146,7 @@ describe('store.service', () => {
       expect(arweave['storeData']).toHaveBeenCalled();
     });
 
-    test('Should storePDABlock when domain is "staker(gateway)', () => {
+    test('Should call storeData when domain is "staker(gateway)', () => {
       // Arrange
       PDA = {
         status: 'Valid',
@@ -176,6 +176,40 @@ describe('store.service', () => {
       servise['storePDAsBlock'](scores);
       // Assert
       expect(arweave['storeData']).toHaveBeenCalled();
+    });
+  });
+
+  describe('storeScores', () => {
+    let scores: PDAScores<ScoringDomainBlock>;
+    beforeEach(() => {
+      scores = {
+        gatewayID: {
+          citizen: {
+            point: 0,
+            PDAs: [],
+          },
+        },
+      };
+      jest.spyOn(config, 'get').mockReturnValue('');
+    });
+    test('Should be defined', () => {
+      // Assert
+      expect(servise.storeScores).toBeDefined();
+    });
+    test('Should call get method from config', () => {
+      // Act
+      servise.storeScores(scores);
+      // Assert
+      expect(config.get).toHaveBeenCalledWith('ARWEAVE_BASE_URL');
+    });
+    test('Should store scores and return the Arweave URL', async () => {
+      // Arrange
+      jest.spyOn(servise as any, 'storePDAsBlock').mockResolvedValue(undefined);
+      const result = await servise.storeScores(scores);
+      // Assert
+      expect(servise['storePDAsBlock']).toHaveBeenCalledWith(scores);
+      expect(arweave['storeData']).toHaveBeenCalledTimes(1);
+      expect(result).toBe('mockedTransactionId');
     });
   });
 });
