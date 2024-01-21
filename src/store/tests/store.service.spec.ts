@@ -8,7 +8,7 @@ import { StoreService } from '../store.service';
 
 jest.mock('@common/arweave/arweave.provider');
 
-describe('store.service', () => {
+describe('StoreService', () => {
   let servise: StoreService;
   let config: ConfigService;
   let arweave: ArweaveProvider;
