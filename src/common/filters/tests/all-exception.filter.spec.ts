@@ -32,16 +32,21 @@ describe('AllExceptionsFilter', () => {
   });
 
   test('Should be defined', () => {
+    // Assert
     expect(filter).toBeDefined();
   });
 
   describe('handleUnknownError', () => {
     test('Should be defined', () => {
+      // Assert
       expect(filter.handleUnknownError).toBeDefined();
     });
     test('Should handle unknown error and log it', () => {
+      // Arrange
       const exception = new Error('Test error');
+      // Act
       filter.handleUnknownError(exception, hostMock, applicationRefMock);
+      // Assert
       expect(applicationRefMock.isHeadersSent).toHaveBeenCalled();
       expect(applicationRefMock.reply).toHaveBeenCalledWith(
         expect.anything(),
@@ -58,11 +63,12 @@ describe('AllExceptionsFilter', () => {
     });
 
     test('should end the response if headers are already sent', () => {
+      // Arrange
       const exception = new Error('Test error');
       applicationRefMock.isHeadersSent = jest.fn(() => true);
-
+      // Act
       filter.handleUnknownError(exception, hostMock, applicationRefMock);
-
+      // Assert
       expect(applicationRefMock.end).toHaveBeenCalledWith(expect.anything());
       expect(applicationRefMock.reply).not.toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalledTimes(1);

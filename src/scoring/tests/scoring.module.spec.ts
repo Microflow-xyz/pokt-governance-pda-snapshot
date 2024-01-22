@@ -17,15 +17,18 @@ describe('ScoringModule', () => {
     scoringService = module.get<ScoringService>(ScoringService);
   });
 
-  it('should be defined', () => {
+  test('should be defined', () => {
+    // Assert
     expect(module).toBeDefined();
   });
 
-  it('should provide ScoringService', () => {
+  test('should provide ScoringService', () => {
+    // Assert
     expect(scoringService).toBeDefined();
   });
 
-  it('should return a score from ScoringService', () => {
+  test('should return a score from ScoringService', () => {
+    // Arrange
     const scoresOutput = {
       gatewayID: {
         citizen: {
@@ -48,6 +51,7 @@ describe('ScoringModule', () => {
       },
     };
     const score = scoringService.calculateScores([PDA]);
+    // Assert
     expect(score).toEqual(scoresOutput);
   });
 });
