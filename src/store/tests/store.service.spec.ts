@@ -60,7 +60,9 @@ describe('StoreService', () => {
     });
 
     test('Should call storeData when PDAs.length is not 0', () => {
+      // Act
       servise['storePDAsBlock'](scores);
+      // Assert
       expect(arweave['storeData']).toHaveBeenCalled();
     });
 
@@ -81,7 +83,9 @@ describe('StoreService', () => {
     });
 
     test('Should call get method with correct parameter', () => {
+      // Act
       servise['storePDAsBlock'](scores);
+      // Assert
       expect(config.get).toHaveBeenCalledWith('ARWEAVE_BASE_URL');
     });
 
