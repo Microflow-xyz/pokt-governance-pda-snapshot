@@ -31,6 +31,7 @@ describe('CoreService', () => {
     jest.clearAllMocks();
   });
   test('Should be defined', () => {
+    // Assert
     expect(coreService).toBeDefined();
   });
 
@@ -39,12 +40,15 @@ describe('CoreService', () => {
       await coreService.handler();
     });
     test('Should be defined', () => {
+      // Assert
       expect(coreService).toBeDefined();
     });
     test('Should call log method from logger', () => {
+      // Assert
       expect(logger.log).toHaveBeenCalledTimes(2);
     });
     test('Should call debug method from logger', () => {
+      // Assert
       expect(logger.debug).toHaveBeenCalledTimes(2);
     });
   });

@@ -10,7 +10,8 @@ describe('CoreModule', () => {
     }).compile();
   });
 
-  it('should be defined', () => {
+  test('should be defined', () => {
+    // Assert
     expect(module).toBeDefined();
   });
 });

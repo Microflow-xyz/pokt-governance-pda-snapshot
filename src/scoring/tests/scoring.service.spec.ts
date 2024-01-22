@@ -24,20 +24,26 @@ describe('ScoringService', () => {
   });
 
   test('Should be defined', () => {
+    // Assert
     expect(scoring).toBeDefined();
   });
 
   describe('appendGatewayID', () => {
     let ScoresOutput: PDAScores<ScoringDomainBlock>;
-    test('Should append a new gatewayID to scoresOutput', () => {
+    let gatewayID: string;
+    beforeEach(() => {
       ScoresOutput = {};
-      const gatewayID = 'gatewayID';
+      gatewayID = 'gatewayID';
+    });
+    test('Should append a new gatewayID to scoresOutput', () => {
       scoring['appendGatewayID'](ScoresOutput, gatewayID);
+      // Assert
       expect(ScoresOutput).toHaveProperty(gatewayID);
       expect(ScoresOutput[gatewayID]).toEqual({});
     });
 
     test('Should not append an existing gatewayID to scoresOutput', () => {
+      // Arrange
       ScoresOutput = {
         gatewayID: {
           citizen: {
@@ -46,11 +52,11 @@ describe('ScoringService', () => {
           },
         },
       };
-      const existingGatewayID = 'gatewayID';
       const scoresOutput = ScoresOutput;
-      scoring['appendGatewayID'](scoresOutput, existingGatewayID);
-
-      expect(scoresOutput[existingGatewayID]).toEqual({
+      // Act
+      scoring['appendGatewayID'](scoresOutput, gatewayID);
+      // Assert
+      expect(scoresOutput[gatewayID]).toEqual({
         citizen: {
           point: 0,
           PDAs: [],
@@ -58,16 +64,14 @@ describe('ScoringService', () => {
       });
     });
     test('Append multiple GatewayIDs to scoresOutput', () => {
-      ScoresOutput = {};
-      const gatewayID1 = 'gatewayID1';
       const gatewayID2 = 'gatewayID2';
-
-      scoring['appendGatewayID'](ScoresOutput, gatewayID1);
+      // Act
+      scoring['appendGatewayID'](ScoresOutput, gatewayID);
       scoring['appendGatewayID'](ScoresOutput, gatewayID2);
-
-      expect(ScoresOutput).toHaveProperty(gatewayID1);
+      // Assert
+      expect(ScoresOutput).toHaveProperty(gatewayID);
       expect(ScoresOutput).toHaveProperty(gatewayID2);
-      expect(ScoresOutput[gatewayID1]).toEqual({});
+      expect(ScoresOutput[gatewayID]).toEqual({});
       expect(ScoresOutput[gatewayID2]).toEqual({});
     });
   });
@@ -77,18 +81,24 @@ describe('ScoringService', () => {
     let domain: PDAType;
     let gatewayID: string;
 
+    beforeEach(() => {
+      ScoresOutput = {
+        gatewayID: {},
+      };
+      gatewayID = 'gatewayID';
+    });
+
     test('Should be defined', () => {
+      // Assert
       expect(scoring['appendDomainBlock']).toBeDefined();
     });
 
     test('should create a domain block with type "citizen"', () => {
-      ScoresOutput = {
-        gatewayID: {},
-      };
+      // Arrange
       domain = 'citizen';
-      gatewayID = 'gatewayID';
+      // Act
       scoring['appendDomainBlock'](ScoresOutput, gatewayID, domain);
-
+      // Assert
       expect(ScoresOutput[gatewayID][domain]).toEqual({
         point: 0,
         PDAs: [],
@@ -96,13 +106,11 @@ describe('ScoringService', () => {
     });
 
     test('Should create a domain block with type "builder"', () => {
-      ScoresOutput = {
-        gatewayID: {},
-      };
+      // Arrange
       domain = 'builder';
-      gatewayID = 'gatewayID';
+      // Act
       scoring['appendDomainBlock'](ScoresOutput, gatewayID, domain);
-
+      // Assert
       expect(ScoresOutput[gatewayID][domain]).toEqual({
         point: 0,
         PDAs: [],
@@ -110,17 +118,16 @@ describe('ScoringService', () => {
     });
 
     test('should create a domain block with type "staker"', () => {
-      ScoresOutput = {
-        gatewayID: {},
-      };
+      // Arrange
       domain = 'staker';
-      gatewayID = 'gatewayID';
+      // Act
       scoring['appendDomainBlock'](ScoresOutput, gatewayID, domain);
-
+      // Assert
       expect(ScoresOutput[gatewayID][domain]).toEqual({});
     });
 
     test('Should not append domain block if domain exists in gatewayID', () => {
+      // Arrange
       ScoresOutput = {
         gatewayID: {
           citizen: {
@@ -129,10 +136,10 @@ describe('ScoringService', () => {
           },
         },
       };
-      gatewayID = 'gatewayID';
       domain = 'citizen';
+      // Act
       scoring['appendDomainBlock'](ScoresOutput, gatewayID, domain);
-
+      // Assert
       expect(ScoresOutput[gatewayID][domain]).toEqual({
         point: 17,
         PDAs: [],
@@ -145,50 +152,8 @@ describe('ScoringService', () => {
     let scoresOutput: PDAScores<ScoringDomainBlock>;
     let subType: Lowercase<StakerPDASubType>;
 
-    test('Should be defined', () => {
-      expect(scoring['appendStackerSubBlock']).toBeDefined();
-    });
-
-    test(`appendStackerSubBlock adds a new sub-block to the staker domain
-when subType does not exist`, () => {
+    beforeEach(() => {
       gatewayID = 'gatewayID';
-      scoresOutput = {
-        gatewayID: {
-          staker: {},
-        },
-      };
-      subType = 'validator';
-      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
-
-      expect(scoresOutput[gatewayID].staker[subType]).toEqual({
-        point: 0,
-        PDAs: [],
-      });
-    });
-
-    test(`appendStackerSubBlock should not add a new sub-block
-     if subType already exists`, () => {
-      scoresOutput = {
-        gatewayID: {
-          staker: {
-            validator: {
-              point: 17,
-              PDAs: [],
-            },
-          },
-        },
-      };
-      gatewayID = 'gatewayID';
-      subType = 'validator';
-      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
-
-      expect(scoresOutput[gatewayID].staker[subType]).toEqual({
-        point: 17,
-        PDAs: [],
-      });
-    });
-
-    test("should create a  Sub-block with type 'validator'", () => {
       scoresOutput = {
         gatewayID: {
           staker: {
@@ -199,15 +164,52 @@ when subType does not exist`, () => {
           },
         },
       };
-      gatewayID = 'gatewayID';
-      subType = 'validator';
+    });
+    subType = 'validator';
+    test('Should be defined', () => {
+      // Assert
+      expect(scoring['appendStackerSubBlock']).toBeDefined();
+    });
+
+    test(`appendStackerSubBlock adds a new sub-block to the staker domain
+when subType does not exist`, () => {
+      // Arrange
+      scoresOutput = {
+        gatewayID: {
+          staker: {},
+        },
+      };
+      // Act
       scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
+      // Assert
+      expect(scoresOutput[gatewayID].staker[subType]).toEqual({
+        point: 0,
+        PDAs: [],
+      });
+    });
+
+    test(`appendStackerSubBlock should not add a new sub-block
+     if subType already exists`, () => {
+      // Act
+      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
+      // Assert
+      expect(scoresOutput[gatewayID].staker[subType]).toEqual({
+        point: 0,
+        PDAs: [],
+      });
+    });
+
+    test("should create a  Sub-block with type 'validator'", () => {
+      // Act
+      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
+      // Assert
       expect(scoresOutput[gatewayID].staker).toEqual({
         validator: { PDAs: [], point: 0 },
       });
     });
 
     test("should create a  Sub-block with type 'gateway'", () => {
+      // Arrange
       scoresOutput = {
         gatewayID: {
           staker: {
@@ -218,9 +220,9 @@ when subType does not exist`, () => {
           },
         },
       };
-      gatewayID = 'gatewayID';
       subType = 'gateway';
       scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
+      // Assert
       expect(scoresOutput[gatewayID].staker).toEqual({
         gateway: { PDAs: [], point: 0 },
       });
@@ -262,55 +264,53 @@ when subType does not exist`, () => {
     });
 
     test('Should be defined', () => {
+      // Assert
       expect(scoring['calculateCitizensPoint']).toBeDefined();
     });
 
     test('Should store related PDA', () => {
+      // Act
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      // Assert
       expect(scoresOutput[gatewayID].citizen.PDAs).toContain(PDA);
     });
 
     test('Point should be 0 when there is only 1 PDA', () => {
+      // Act
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      // Assert
       expect(PDAs).toContain(PDA);
       expect(PDAs.length).toEqual(1);
       expect(points).toEqual(0);
     });
 
     test('Point should be 0 when citizen has no "POKT DNA"', () => {
+      // Arrange
       PDAs.push(PDA);
+      //
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      // Assert
       expect(PDAs).toContain(PDA);
       expect(PDAs.length).toEqual(2);
       expect(points).toEqual(0);
     });
 
     test('Point should be 0 when citizen has no "POKT DAO"', () => {
-      PDA = {
-        status: 'Valid',
-        dataAsset: {
-          claim: {
-            point: 17,
-            pdaType: 'citizen',
-            pdaSubtype: 'POKT DNA',
-          },
-          owner: {
-            gatewayId: 'gatewayID',
-          },
-        },
-      };
+      // Arrange
       PDAs.push(PDA);
+      // Act
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
-
+      // Assert
       expect(PDAs).toContain(PDA);
       expect(PDAs.length).toEqual(2);
       expect(points).toEqual(0);
     });
 
     test('Point should be 1 when citizen has both "POKT DAO" and "POKT DNA"', () => {
-      PDAs.push(PDA);
-      PDAs.push(PDA);
-      PDAs.push(PDA);
+      // Arrange
+      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
       PDA = {
         status: 'Valid',
         dataAsset: {
@@ -324,8 +324,10 @@ when subType does not exist`, () => {
           },
         },
       };
+      // Act
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
       const point: number = scoresOutput[gatewayID].citizen.point;
+      // Assert
       expect(PDAs.length).toEqual(4);
       expect(point).toEqual(1);
     });
@@ -353,8 +355,22 @@ when subType does not exist`, () => {
       scoresOutput = {
         gatewayID: {
           builder: {
-            point: 0,
-            PDAs: [PDA],
+            point: 2,
+            PDAs: [
+              {
+                status: 'Valid',
+                dataAsset: {
+                  claim: {
+                    point: 2,
+                    pdaType: 'builder',
+                    pdaSubtype: 'Bounty Hunter',
+                  },
+                  owner: {
+                    gatewayId: 'gatewayID',
+                  },
+                },
+              },
+            ],
           },
         },
       };
@@ -368,149 +384,19 @@ when subType does not exist`, () => {
     test('Should store related PDA', () => {
       // Act
       scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
-
       // Assert
       expect(scoresOutput[gatewayID].builder.PDAs).toContain(PDA);
       expect(scoresOutput[gatewayID].builder.PDAs.length).toEqual(2);
+      expect(scoresOutput[gatewayID].builder.point).toEqual(2);
     });
 
-    test('Should calculate total points correctly', () => {
+    test('Should update max value for each builder subType', () => {
       // Arrange
-      scoresOutput = {
-        gatewayID: {
-          builder: {
-            point: 5,
-            PDAs: [
-              {
-                status: 'Valid',
-                dataAsset: {
-                  claim: {
-                    point: 2,
-                    pdaType: 'builder',
-                    pdaSubtype: 'Protocol Builder',
-                  },
-                  owner: {
-                    gatewayId: 'gatewayID',
-                  },
-                },
-              },
-              {
-                status: 'Valid',
-                dataAsset: {
-                  claim: {
-                    point: 3,
-                    pdaType: 'builder',
-                    pdaSubtype: 'Priority Builder',
-                  },
-                  owner: {
-                    gatewayId: 'gatewayID',
-                  },
-                },
-              },
-            ],
-          },
-        },
-      };
-
       PDA = {
         status: 'Valid',
         dataAsset: {
           claim: {
-            point: 4,
-            pdaType: 'builder',
-            pdaSubtype: 'Socket Builder',
-          },
-          owner: {
-            gatewayId: 'gatewayID',
-          },
-        },
-      };
-
-      // Act
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
-
-      // Assert
-      const pointer = scoresOutput[gatewayID].builder;
-      expect(pointer.point).toEqual(9);
-      expect(pointer.PDAs.length).toEqual(3);
-    });
-
-    test('Should set point equal 10 if point is greater than 10', () => {
-      // Arrange
-      scoresOutput = {
-        gatewayID: {
-          builder: {
-            point: 5,
-            PDAs: [
-              {
-                status: 'Valid',
-                dataAsset: {
-                  claim: {
-                    point: 5,
-                    pdaType: 'builder',
-                    pdaSubtype: 'Protocol Builder',
-                  },
-                  owner: {
-                    gatewayId: 'gatewayID',
-                  },
-                },
-              },
-            ],
-          },
-        },
-      };
-      PDA = {
-        status: 'Valid',
-        dataAsset: {
-          claim: {
-            point: 5,
-            pdaType: 'builder',
-            pdaSubtype: 'Socket Builder',
-          },
-          owner: {
-            gatewayId: 'gatewayID',
-          },
-        },
-      };
-
-      // Act
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
-
-      // Assert
-      const pointer = scoresOutput[gatewayID].builder;
-      expect(pointer.point).toEqual(10);
-      expect(pointer.PDAs.length).toEqual(2);
-    });
-
-    test('should not change points if the total is between 1 to 10', () => {
-      // Arrange
-      scoresOutput = {
-        gatewayID: {
-          builder: {
-            point: 5,
-            PDAs: [
-              {
-                status: 'Valid',
-                dataAsset: {
-                  claim: {
-                    point: 5,
-                    pdaType: 'builder',
-                    pdaSubtype: 'Protocol Builder',
-                  },
-                  owner: {
-                    gatewayId: 'gatewayID',
-                  },
-                },
-              },
-            ],
-          },
-        },
-      };
-      PDA = {
-        status: 'Valid',
-        dataAsset: {
-          claim: {
-            point: 5,
+            point: 3,
             pdaType: 'builder',
             pdaSubtype: 'Bounty Hunter',
           },
@@ -521,7 +407,76 @@ when subType does not exist`, () => {
       };
       // Act
       scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      const pointer = scoresOutput[gatewayID].builder;
+      // Assert
+      expect(pointer.point).toEqual(3);
+      expect(pointer.PDAs.length).toEqual(2);
+    });
 
+    test('Should calculate total points correctly', () => {
+      // Arrange
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 3,
+            pdaType: 'builder',
+            pdaSubtype: 'DAO Scholar',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      // Act
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      // Assert
+      const pointer = scoresOutput[gatewayID].builder;
+      expect(pointer.point).toEqual(5);
+      expect(pointer.PDAs.length).toEqual(2);
+    });
+
+    test('Should set point equal 10 if point is greater than 10', () => {
+      // Arrange
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 9,
+            pdaType: 'builder',
+            pdaSubtype: 'Socket Builder',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+
+      // Act
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      // Assert
+      const pointer = scoresOutput[gatewayID].builder;
+      expect(pointer.point).toEqual(10);
+      expect(pointer.PDAs.length).toEqual(2);
+    });
+
+    test('should not change points if the total is between 1 to 10', () => {
+      // Arrange
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 8,
+            pdaType: 'builder',
+            pdaSubtype: 'DAO Scholar',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      // Act
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
       // Assert
       const pointer = scoresOutput[gatewayID].builder;
       expect(pointer.point).toEqual(10);
@@ -569,7 +524,6 @@ when subType does not exist`, () => {
     test('Should store related PDA', () => {
       // Act
       scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
-
       // Assert
       expect(scoresOutput[gatewayID].staker.validator.PDAs).toContain(PDA);
       expect(scoresOutput[gatewayID].staker.validator.PDAs.length).toEqual(1);
@@ -579,7 +533,6 @@ when subType does not exist`, () => {
  when the PDA_SUB_TYPE is equal to 'validator'`, () => {
       // Act
       scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
-
       // Assert
       const pointer = scoresOutput[gatewayID].staker.validator;
       expect(pointer.point).toEqual(2);
@@ -627,10 +580,8 @@ when subType does not exist`, () => {
           },
         },
       };
-
       // Act
       scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
-
       // Assert
       const pointer = scoresOutput[gatewayID].staker.gateway;
       expect(pointer.point).toEqual(8);
@@ -654,10 +605,8 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
           },
         },
       };
-
       // Act
       scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
-
       // Assert
       expect(logger.warn).toHaveBeenCalledWith(
         `Skipped PDA sub type (liquidity provider) for staker`,
@@ -693,7 +642,6 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
     test(`Should call appendGatewayID and add gatewayID to scoresOutput`, () => {
       // Act
       returnValue = scoring.calculateScores([PDA]);
-
       // Assert
       expect(returnValue['gatewayID']).toBeDefined();
     });
@@ -717,7 +665,6 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
 
       // Act
       returnValue = scoring.calculateScores([PDA]);
-
       // Assert
       expect(returnValue).toEqual({});
     });
@@ -739,10 +686,8 @@ when PDA_TYPE is 'citizen', then add PDA to scoresOutput,
           },
         },
       };
-
       // Act
       returnValue = scoring.calculateScores([PDA]);
-
       // Assert
       const pointer = returnValue['gatewayID'];
       expect(pointer.citizen).toBeDefined();
@@ -755,28 +700,12 @@ when PDA_TYPE is 'citizen', then add PDA to scoresOutput,
     test(`Should call appendDomainBlock and calculateBuildersPoint
 when PDA_TYPE is 'builder', then add PDA to scoresOutput, 
 calculate points and append to scoresOutput`, () => {
-      // Arrange
-      PDA = {
-        status: 'Valid',
-        dataAsset: {
-          claim: {
-            point: 17,
-            pdaType: 'builder',
-            pdaSubtype: 'Socket Builder',
-          },
-          owner: {
-            gatewayId: 'gatewayID',
-          },
-        },
-      };
-
       // Act
       returnValue = scoring.calculateScores([PDA]);
-
       // Assert
       const pointer = returnValue['gatewayID'];
       expect(pointer.builder).toBeDefined();
-      expect(pointer.builder.point).toEqual(10);
+      expect(pointer.builder.point).toEqual(5);
       expect(pointer.builder.PDAs.length).toEqual(1);
       expect(pointer.citizen).toBeUndefined();
       expect(pointer.staker).toBeUndefined();
@@ -800,10 +729,8 @@ calculate points and append to scoresOutput`, () => {
           },
         },
       };
-
       // Act
       returnValue = scoring.calculateScores([PDA]);
-
       // Assert
       const pointer = returnValue['gatewayID'];
       expect(pointer.staker.gateway).toBeDefined();

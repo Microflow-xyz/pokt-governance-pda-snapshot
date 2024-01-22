@@ -49,7 +49,9 @@ describe('PDAService', () => {
         headers: undefined,
         config: undefined,
       };
-
+      jest.mock('rxjs', () => ({
+        of: jest.fn(),
+      }));
       jest.spyOn(config, 'get').mockReturnValue('');
       jest.spyOn(axios, 'post').mockReturnValue(of(axiosResponse));
 
@@ -228,7 +230,6 @@ describe('PDAService', () => {
       jest.spyOn(service as any, 'request').mockReturnValueOnce(PDAResponse);
       // Act
       returnValue = await service.getIssuedPDAs();
-
       // Assert
       expect(returnValue).toEqual([]);
     });
@@ -249,10 +250,8 @@ describe('PDAService', () => {
         .mockReturnValueOnce(issuedPDACountResponse);
 
       jest.spyOn(service as any, 'request').mockReturnValueOnce(PDAResponse);
-
       // Act
       returnValue = await service.getIssuedPDAs();
-
       // Assert
       expect(returnValue).toEqual([issuedPDA]);
     });

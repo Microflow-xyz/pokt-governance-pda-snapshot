@@ -15,11 +15,14 @@ describe('PDAModule', () => {
   });
 
   test('should be defined', () => {
+    // Assert
     expect(module).toBeDefined();
   });
 
   test('should provide PDAService', () => {
+    // Arrange
     const pdaService = module.get<PDAService>(PDAService);
+    // Assert
     expect(pdaService).toBeDefined();
     expect(pdaService['getIssuedPDAsGQL']()).toBe('mockedValue');
   });
