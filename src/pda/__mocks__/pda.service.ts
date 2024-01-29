@@ -1,5 +1,5 @@
 export const PDAService = jest.fn().mockReturnValue({
-  getIssuedPDAs: jest.fn(),
+  getIssuedPDAs: jest.fn().mockResolvedValue([]),
   getIssuedPDAsGQL: jest.fn(() => {
     return 'mockedValue';
   }),
