@@ -8,7 +8,7 @@ describe('Arweave Provider', () => {
   let provider: ArweaveProvider;
   let irys: Irys;
 
-  beforeAll(async () => {
+  beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
