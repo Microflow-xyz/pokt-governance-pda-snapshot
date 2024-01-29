@@ -331,6 +331,26 @@ when subType does not exist`, () => {
       expect(PDAs.length).toEqual(4);
       expect(point).toEqual(1);
     });
+    test('Should call error from logger when pdaSubtype is wrong', () => {
+      const fakePDA: any = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 17,
+            pdaType: 'citizen',
+            pdaSubtype: 'fake pdaSubtype',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, fakePDA);
+      expect(logger.error).toHaveBeenCalledWith(
+        `Invalid PDA sub type (fake pdaSubtype) for citizen`,
+        ScoringService.name,
+      );
+    });
   });
 
   describe('calculateBuildersPoint', () => {
@@ -482,6 +502,26 @@ when subType does not exist`, () => {
       expect(pointer.point).toEqual(10);
       expect(pointer.PDAs.length).toEqual(2);
     });
+    test('Should call error from logger when pdaSubtype is wrong', () => {
+      const fakePDA: any = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 8,
+            pdaType: 'builder',
+            pdaSubtype: 'fake pdaSubtype',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, fakePDA);
+      expect(logger.error).toHaveBeenCalledWith(
+        `Invalid PDA sub type (fake pdaSubtype) for builder`,
+        ScoringService.name,
+      );
+    });
   });
 
   describe('calculateStakersPoint', () => {
@@ -613,6 +653,27 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
         ScoringService.name,
       );
     });
+    test('Should call error from logger when pdaSubtype is wrong', () => {
+      const fakePDA: any = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 4,
+            pdaType: 'staker',
+            pdaSubtype: 'fake pdaSubtype',
+            type: 'custodian',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      scoring['calculateStakersPoint'](scoresOutput, gatewayID, fakePDA);
+      expect(logger.error).toHaveBeenCalledWith(
+        `Invalid PDA sub type (fake pdasubtype) for staker`,
+        ScoringService.name,
+      );
+    });
   });
 
   describe('calculateScores method', () => {
@@ -738,6 +799,27 @@ calculate points and append to scoresOutput`, () => {
       expect(pointer.staker.gateway.PDAs.length).toEqual(1);
       expect(pointer.citizen).toBeUndefined();
       expect(pointer.builder).toBeUndefined();
+    });
+    test('Should call error from logger when pdaType is wrong', () => {
+      const fakePDA: any = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 4,
+            pdaType: 'fake pdaType',
+            pdaSubtype: 'Gateway',
+            type: 'custodian',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      scoring.calculateScores([fakePDA]);
+      expect(logger.error).toHaveBeenCalledWith(
+        `Unknown PDA type (fake pdaType) exists`,
+        ScoringService.name,
+      );
     });
   });
 });
