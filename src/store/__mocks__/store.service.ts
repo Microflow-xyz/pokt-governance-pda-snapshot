@@ -1,3 +1,4 @@
 export const StoreService = jest.fn().mockReturnValue({
-  storeScores: jest.fn().mockReturnValue('arweaveBaseURL')
+  storePDAsBlock: jest.fn(),
+  storeScores: jest.fn().mockReturnValue('arweaveBaseURL'),
 });
