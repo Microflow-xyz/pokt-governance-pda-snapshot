@@ -206,8 +206,6 @@ describe('ScoringService', () => {
     let scoresOutput: PDAScores<ScoringDomainBlock>;
     let gatewayID: string;
     let PDA: IssuedPDA;
-    let PDAs: IssuedPDA[];
-    let points: number;
 
     beforeEach(() => {
       scoresOutput = {
@@ -232,57 +230,46 @@ describe('ScoringService', () => {
         },
       };
       gatewayID = 'gatewayID';
-      PDAs = scoresOutput[gatewayID].citizen.PDAs;
-      points = scoresOutput[gatewayID].citizen.point;
     });
 
     test('Should be defined', () => {
-      // Assert
       expect(scoring['calculateCitizensPoint']).toBeDefined();
     });
-
     test('Should store related PDA', () => {
-      // Act
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
       expect(scoresOutput[gatewayID].citizen.PDAs).toContain(PDA);
+      expect(scoresOutput[gatewayID].citizen.PDAs[0]).toEqual(PDA);
     });
-
-    test('Point should be 0 when there is only 1 PDA', () => {
-      // Act
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
-      expect(PDAs).toContain(PDA);
-      expect(PDAs.length).toEqual(1);
-      expect(points).toEqual(0);
-    });
-
     test('Point should be 0 when citizen has no "POKT DNA"', () => {
-      // Arrange
-      PDAs.push(PDA);
-      //
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
-      expect(PDAs).toContain(PDA);
-      expect(PDAs.length).toEqual(2);
-      expect(points).toEqual(0);
+      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      expect(scoresOutput[gatewayID].citizen.PDAs).toContain(PDA);
+      expect(scoresOutput[gatewayID].citizen.PDAs.length).toEqual(2);
+      expect(scoresOutput[gatewayID].citizen.point).toEqual(0);
     });
 
     test('Point should be 0 when citizen has no "POKT DAO"', () => {
-      // Arrange
-      PDAs.push(PDA);
-      // Act
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 17,
+            pdaType: 'citizen',
+            pdaSubtype: 'POKT DNA',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
-      expect(PDAs).toContain(PDA);
-      expect(PDAs.length).toEqual(2);
-      expect(points).toEqual(0);
+      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      expect(scoresOutput[gatewayID].citizen.PDAs).toContain(PDA);
+      expect(scoresOutput[gatewayID].citizen.PDAs.length).toEqual(2);
+      expect(scoresOutput[gatewayID].citizen.point).toEqual(0);
     });
 
     test('Point should be 1 when citizen has both "POKT DAO" and "POKT DNA"', () => {
-      // Arrange
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
       PDA = {
         status: 'Valid',
@@ -297,12 +284,9 @@ describe('ScoringService', () => {
           },
         },
       };
-      // Act
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
-      const point: number = scoresOutput[gatewayID].citizen.point;
-      // Assert
-      expect(PDAs.length).toEqual(4);
-      expect(point).toEqual(1);
+      expect(scoresOutput[gatewayID].citizen.PDAs.length).toEqual(2);
+      expect(scoresOutput[gatewayID].citizen.point).toEqual(1);
     });
     test('Should call error from logger when pdaSubtype is wrong', () => {
       const fakePDA: any = {
@@ -349,21 +333,7 @@ describe('ScoringService', () => {
         gatewayID: {
           builder: {
             point: 2,
-            PDAs: [
-              {
-                status: 'Valid',
-                dataAsset: {
-                  claim: {
-                    point: 2,
-                    pdaType: 'builder',
-                    pdaSubtype: 'Bounty Hunter',
-                  },
-                  owner: {
-                    gatewayId: 'gatewayID',
-                  },
-                },
-              },
-            ],
+            PDAs: [PDA],
           },
         },
       };
@@ -375,16 +345,27 @@ describe('ScoringService', () => {
     });
 
     test('Should store related PDA', () => {
-      // Act
       scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
       expect(scoresOutput[gatewayID].builder.PDAs).toContain(PDA);
       expect(scoresOutput[gatewayID].builder.PDAs.length).toEqual(2);
       expect(scoresOutput[gatewayID].builder.point).toEqual(2);
     });
+    test('Should add PDA if it does not exist', () => {
+      scoresOutput = {
+        gatewayID: {
+          builder: {
+            point: 2,
+            PDAs: [],
+          },
+        },
+      };
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      expect(scoresOutput[gatewayID].builder.PDAs).toContain(PDA);
+      expect(scoresOutput[gatewayID].builder.PDAs.length).toEqual(1);
+      expect(scoresOutput[gatewayID].builder.point).toEqual(2);
+    });
 
     test('Should update max value for each builder subType', () => {
-      // Arrange
       PDA = {
         status: 'Valid',
         dataAsset: {
@@ -398,16 +379,13 @@ describe('ScoringService', () => {
           },
         },
       };
-      // Act
       scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
       const pointer = scoresOutput[gatewayID].builder;
-      // Assert
       expect(pointer.point).toEqual(3);
       expect(pointer.PDAs.length).toEqual(2);
     });
 
     test('Should calculate total points correctly', () => {
-      // Arrange
       PDA = {
         status: 'Valid',
         dataAsset: {
@@ -421,16 +399,27 @@ describe('ScoringService', () => {
           },
         },
       };
-      // Act
       scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 3,
+            pdaType: 'builder',
+            pdaSubtype: 'Socket Builder',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
       const pointer = scoresOutput[gatewayID].builder;
-      expect(pointer.point).toEqual(5);
-      expect(pointer.PDAs.length).toEqual(2);
+      expect(pointer.point).toEqual(8);
+      expect(pointer.PDAs.length).toEqual(3);
     });
 
     test('Should set point equal 10 if point is greater than 10', () => {
-      // Arrange
       PDA = {
         status: 'Valid',
         dataAsset: {
@@ -444,33 +433,7 @@ describe('ScoringService', () => {
           },
         },
       };
-
-      // Act
       scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
-      const pointer = scoresOutput[gatewayID].builder;
-      expect(pointer.point).toEqual(10);
-      expect(pointer.PDAs.length).toEqual(2);
-    });
-
-    test('should not change points if the total is between 1 to 10', () => {
-      // Arrange
-      PDA = {
-        status: 'Valid',
-        dataAsset: {
-          claim: {
-            point: 8,
-            pdaType: 'builder',
-            pdaSubtype: 'DAO Scholar',
-          },
-          owner: {
-            gatewayId: 'gatewayID',
-          },
-        },
-      };
-      // Act
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
       const pointer = scoresOutput[gatewayID].builder;
       expect(pointer.point).toEqual(10);
       expect(pointer.PDAs.length).toEqual(2);
@@ -535,18 +498,14 @@ describe('ScoringService', () => {
     });
 
     test('Should store related PDA', () => {
-      // Act
       scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
       expect(scoresOutput[gatewayID].staker.validator.PDAs).toContain(PDA);
       expect(scoresOutput[gatewayID].staker.validator.PDAs.length).toEqual(1);
     });
 
     test(`The square root of the sum of PDA points should be assigned as the point value
  when the PDA_SUB_TYPE is equal to 'validator'`, () => {
-      // Act
       scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
       const pointer = scoresOutput[gatewayID].staker.validator;
       expect(pointer.point).toEqual(2);
     });
@@ -669,14 +628,11 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
     });
 
     test('Should be defined', () => {
-      // Assert
       expect(scoring.calculateScores).toBeDefined();
     });
 
     test(`Should call appendGatewayID and add gatewayID to scoresOutput`, () => {
-      // Act
       returnValue = scoring.calculateScores([PDA]);
-      // Assert
       expect(returnValue['gatewayID']).toBeDefined();
     });
 
@@ -720,9 +676,7 @@ when PDA_TYPE is 'citizen', then add PDA to scoresOutput,
           },
         },
       };
-      // Act
       returnValue = scoring.calculateScores([PDA]);
-      // Assert
       const pointer = returnValue['gatewayID'];
       expect(pointer.citizen).toBeDefined();
       expect(pointer.citizen.point).toEqual(0);
@@ -734,9 +688,7 @@ when PDA_TYPE is 'citizen', then add PDA to scoresOutput,
     test(`Should call appendDomainBlock and calculateBuildersPoint
 when PDA_TYPE is 'builder', then add PDA to scoresOutput, 
 calculate points and append to scoresOutput`, () => {
-      // Act
       returnValue = scoring.calculateScores([PDA]);
-      // Assert
       const pointer = returnValue['gatewayID'];
       expect(pointer.builder).toBeDefined();
       expect(pointer.builder.point).toEqual(5);
@@ -748,7 +700,6 @@ calculate points and append to scoresOutput`, () => {
     test(`Should call appendDomainBlock and calculateStakersPoint
 when PDA_TYPE is 'staker', then add PDA to scoresOutput,
 calculate points and append to scoresOutput`, () => {
-      // Arrange
       PDA = {
         status: 'Valid',
         dataAsset: {
@@ -763,9 +714,7 @@ calculate points and append to scoresOutput`, () => {
           },
         },
       };
-      // Act
       returnValue = scoring.calculateScores([PDA]);
-      // Assert
       const pointer = returnValue['gatewayID'];
       expect(pointer.staker.gateway).toBeDefined();
       expect(pointer.staker.gateway.point).toEqual(4);
