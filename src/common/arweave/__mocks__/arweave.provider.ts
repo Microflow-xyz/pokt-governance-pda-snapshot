@@ -1,5 +1,5 @@
 export const ArweaveProvider = jest.fn().mockReturnValue({
-  storeData: jest.fn().mockResolvedValue('mockedTransactionId'),
+  storeData: jest.fn(),
   calculateSizeOfData: jest.fn(),
   fundNodeBasedOnSize: jest.fn(),
 });
