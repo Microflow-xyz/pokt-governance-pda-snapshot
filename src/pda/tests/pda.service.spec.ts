@@ -29,7 +29,6 @@ describe('PDAService', () => {
   });
 
   test('Should be defined', () => {
-    // Asert
     expect(service).toBeDefined();
   });
 
@@ -56,12 +55,10 @@ describe('PDAService', () => {
     });
 
     test('Should be defined', () => {
-      // Assert
       expect(service['request']).toBeDefined();
     });
 
     test('Should call get method from config', () => {
-      // Assert
       expect(config.get).toHaveBeenCalledWith('MYGATEWAY_ENDPOINT_URL');
     });
 
@@ -70,12 +67,10 @@ describe('PDAService', () => {
     });
 
     test('Should call get method from config', () => {
-      // Assert
       expect(config.get).toHaveBeenCalledWith('MYGATEWAY_API_KEY');
     });
 
     test('Should call post from axios with the correct parameters', () => {
-      // Assert
       expect(axios.post).toHaveBeenCalledWith(
         '',
         {
@@ -93,7 +88,6 @@ describe('PDAService', () => {
     });
 
     test('Should return body from http response', () => {
-      // Assert
       expect(returnValue).toEqual(axiosResponse.data);
     });
   });
@@ -106,12 +100,10 @@ describe('PDAService', () => {
     });
 
     test('Should be defined', () => {
-      // Assert
       expect(service['getIssuedPDAsGQL']).toBeDefined();
     });
 
     test('Should return getIssuedPDAs graphQL query', () => {
-      // Assert
       expect(returnValue).toBe(
         `
     query getPDAs($org_gateway_id: String!, $take: Float!, $skip: Float!) {
@@ -142,12 +134,10 @@ describe('PDAService', () => {
     });
 
     test('Should be defined', () => {
-      // Assert
       expect(service['getIssuedPDACountGQL']).toBeDefined();
     });
 
     test('Should return IssuedPDACount graphQL query', () => {
-      // Assert
       expect(returnValue).toBe(
         `
     query IssuedPDAsCount($org_gateway_id: String!) {
@@ -161,13 +151,11 @@ describe('PDAService', () => {
 
   describe('When pagination method called', () => {
     test("Should return pagination when max's value less or equal that 15", () => {
-      // Assert
       expect(service['pagination'](14)).toEqual([{ take: 14, skip: 0 }]);
       expect(service['pagination'](15)).toEqual([{ take: 15, skip: 0 }]);
     });
 
     test("Should return pagination when max's value greater that 15", () => {
-      // Assert
       expect(service['pagination'](50)).toEqual([
         { take: 15, skip: 0 },
         { take: 15, skip: 15 },
@@ -204,36 +192,6 @@ describe('PDAService', () => {
         },
       };
       issuedPDACountResponse = {
-        data: { issuedPDAsCount: 0 },
-      };
-      PDAResponse = {
-        data: {
-          issuedPDAs: [],
-        },
-      };
-    });
-
-    test('Should be defined', () => {
-      // Assert
-      expect(service.getIssuedPDAs).toBeDefined();
-    });
-
-    test('It should return an empty array when issuedPDAsCount is 0', async () => {
-      // Arrange
-      jest
-        .spyOn(service as any, 'request')
-        .mockReturnValueOnce(issuedPDACountResponse);
-
-      jest.spyOn(service as any, 'request').mockReturnValueOnce(PDAResponse);
-      // Act
-      returnValue = await service.getIssuedPDAs();
-      // Assert
-      expect(returnValue).toEqual([]);
-    });
-
-    test('It should return an array of IssuedPDAs when issuedPDAsCount is not 0', async () => {
-      // Arrange
-      issuedPDACountResponse = {
         data: { issuedPDAsCount: 1 },
       };
       PDAResponse = {
@@ -241,16 +199,59 @@ describe('PDAService', () => {
           issuedPDAs: [issuedPDA],
         },
       };
-
+      jest.spyOn(config, 'get').mockReturnValue('');
+      jest
+        .spyOn(service as any, 'getIssuedPDAsGQL')
+        .mockReturnValue('getIssuedPDAsGQL');
+      jest
+        .spyOn(service as any, 'getIssuedPDACountGQL')
+        .mockReturnValue('getIssuedPDACountGQL');
       jest
         .spyOn(service as any, 'request')
         .mockReturnValueOnce(issuedPDACountResponse);
 
       jest.spyOn(service as any, 'request').mockReturnValueOnce(PDAResponse);
-      // Act
+
       returnValue = await service.getIssuedPDAs();
-      // Assert
+    });
+
+    test('Should be defined', () => {
+      expect(service.getIssuedPDAs).toBeDefined();
+    });
+
+    test('Should call request method with correct parameters', async () => {
+      expect(service['request']).toHaveBeenCalledWith('getIssuedPDACountGQL', {
+        org_gateway_id: '',
+      });
+      expect(service['request']).toHaveBeenCalledWith('getIssuedPDAsGQL', {
+        org_gateway_id: '',
+        skip: 0,
+        take: 1,
+      });
+      expect(service['request']).toHaveBeenCalledTimes(2);
+    });
+
+    test('It should return an empty array when issuedPDAsCount is 0', async () => {
+      issuedPDACountResponse = {
+        data: { issuedPDAsCount: 0 },
+      };
+      PDAResponse = {
+        data: {
+          issuedPDAs: [],
+        },
+      };
+      jest
+        .spyOn(service as any, 'request')
+        .mockReturnValueOnce(issuedPDACountResponse);
+
+      jest.spyOn(service as any, 'request').mockReturnValueOnce(PDAResponse);
+      returnValue = await service.getIssuedPDAs();
+      expect(returnValue).toEqual([]);
+    });
+
+    test('It should return an array of IssuedPDAs when issuedPDAsCount is not 0', async () => {
       expect(returnValue).toEqual([issuedPDA]);
+      expect(service['request']).toHaveBeenCalledTimes(2);
     });
   });
 });

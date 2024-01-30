@@ -24,7 +24,6 @@ describe('ScoringService', () => {
   });
 
   test('Should be defined', () => {
-    // Assert
     expect(scoring).toBeDefined();
   });
 
@@ -37,14 +36,12 @@ describe('ScoringService', () => {
     });
     test('Should append a new gatewayID to scoresOutput', () => {
       scoring['appendGatewayID'](ScoresOutput, gatewayID);
-      // Assert
       expect(ScoresOutput).toHaveProperty(gatewayID);
       expect(ScoresOutput[gatewayID]).toEqual({});
     });
 
     test('Should not append an existing gatewayID to scoresOutput', () => {
-      // Arrange
-      ScoresOutput = {
+      const scoresOutput = {
         gatewayID: {
           citizen: {
             point: 0,
@@ -52,10 +49,7 @@ describe('ScoringService', () => {
           },
         },
       };
-      const scoresOutput = ScoresOutput;
-      // Act
       scoring['appendGatewayID'](scoresOutput, gatewayID);
-      // Assert
       expect(scoresOutput[gatewayID]).toEqual({
         citizen: {
           point: 0,
@@ -65,10 +59,8 @@ describe('ScoringService', () => {
     });
     test('Append multiple GatewayIDs to scoresOutput', () => {
       const gatewayID2 = 'gatewayID2';
-      // Act
       scoring['appendGatewayID'](ScoresOutput, gatewayID);
       scoring['appendGatewayID'](ScoresOutput, gatewayID2);
-      // Assert
       expect(ScoresOutput).toHaveProperty(gatewayID);
       expect(ScoresOutput).toHaveProperty(gatewayID2);
       expect(ScoresOutput[gatewayID]).toEqual({});
@@ -77,58 +69,51 @@ describe('ScoringService', () => {
   });
 
   describe('appendDomainBlock', () => {
-    let ScoresOutput: PDAScores<ScoringDomainBlock>;
+    let scoresOutput: PDAScores<ScoringDomainBlock>;
     let domain: PDAType;
     let gatewayID: string;
 
     beforeEach(() => {
-      ScoresOutput = {
+      scoresOutput = {
         gatewayID: {},
       };
       gatewayID = 'gatewayID';
     });
 
     test('Should be defined', () => {
-      // Assert
       expect(scoring['appendDomainBlock']).toBeDefined();
     });
 
-    test('should create a domain block with type "citizen"', () => {
-      // Arrange
+    test('should create a "citizen" domain block with correct parameters', () => {
       domain = 'citizen';
-      // Act
-      scoring['appendDomainBlock'](ScoresOutput, gatewayID, domain);
-      // Assert
-      expect(ScoresOutput[gatewayID][domain]).toEqual({
-        point: 0,
-        PDAs: [],
-      });
+      scoring['appendDomainBlock'](scoresOutput, gatewayID, domain);
+
+      expect(scoresOutput[gatewayID].citizen).toBeDefined();
+      expect(scoresOutput[gatewayID].builder).toBeUndefined();
+      expect(scoresOutput[gatewayID].staker).toBeUndefined();
+      expect(scoresOutput[gatewayID].citizen).toEqual({ point: 0, PDAs: [] });
     });
 
-    test('Should create a domain block with type "builder"', () => {
-      // Arrange
+    test('should create a "builder" domain block with correct parameters', () => {
       domain = 'builder';
-      // Act
-      scoring['appendDomainBlock'](ScoresOutput, gatewayID, domain);
-      // Assert
-      expect(ScoresOutput[gatewayID][domain]).toEqual({
-        point: 0,
-        PDAs: [],
-      });
+      scoring['appendDomainBlock'](scoresOutput, gatewayID, domain);
+      expect(scoresOutput[gatewayID].builder).toBeDefined();
+      expect(scoresOutput[gatewayID].citizen).toBeUndefined();
+      expect(scoresOutput[gatewayID].staker).toBeUndefined();
+      expect(scoresOutput[gatewayID].builder).toEqual({ point: 0, PDAs: [] });
     });
 
-    test('should create a domain block with type "staker"', () => {
-      // Arrange
+    test('should create a "staker" domain block with correct parameters', () => {
       domain = 'staker';
-      // Act
-      scoring['appendDomainBlock'](ScoresOutput, gatewayID, domain);
-      // Assert
-      expect(ScoresOutput[gatewayID][domain]).toEqual({});
+      scoring['appendDomainBlock'](scoresOutput, gatewayID, domain);
+      expect(scoresOutput[gatewayID].staker).toBeDefined();
+      expect(scoresOutput[gatewayID].citizen).toBeUndefined();
+      expect(scoresOutput[gatewayID].builder).toBeUndefined();
+      expect(scoresOutput[gatewayID][domain]).toEqual({});
     });
 
     test('Should not append domain block if domain exists in gatewayID', () => {
-      // Arrange
-      ScoresOutput = {
+      scoresOutput = {
         gatewayID: {
           citizen: {
             point: 17,
@@ -137,10 +122,8 @@ describe('ScoringService', () => {
         },
       };
       domain = 'citizen';
-      // Act
-      scoring['appendDomainBlock'](ScoresOutput, gatewayID, domain);
-      // Assert
-      expect(ScoresOutput[gatewayID][domain]).toEqual({
+      scoring['appendDomainBlock'](scoresOutput, gatewayID, domain);
+      expect(scoresOutput[gatewayID][domain]).toEqual({
         point: 17,
         PDAs: [],
       });
@@ -156,76 +139,66 @@ describe('ScoringService', () => {
       gatewayID = 'gatewayID';
       scoresOutput = {
         gatewayID: {
-          staker: {
-            validator: {
-              point: 0,
-              PDAs: [],
-            },
-          },
+          staker: {},
         },
       };
     });
     subType = 'validator';
     test('Should be defined', () => {
-      // Assert
       expect(scoring['appendStackerSubBlock']).toBeDefined();
     });
 
-    test(`appendStackerSubBlock adds a new sub-block to the staker domain
-when subType does not exist`, () => {
-      // Arrange
-      scoresOutput = {
-        gatewayID: {
-          staker: {},
+    test(`should not add a new sub-block
+     if subType already exists`, () => {
+      const PDA: IssuedPDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 17,
+            pdaType: 'staker',
+            pdaSubtype: 'Gateway',
+            type: 'custodian',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
         },
       };
-      // Act
-      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
-      // Assert
-      expect(scoresOutput[gatewayID].staker[subType]).toEqual({
-        point: 0,
-        PDAs: [],
-      });
-    });
-
-    test(`appendStackerSubBlock should not add a new sub-block
-     if subType already exists`, () => {
-      // Act
-      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
-      // Assert
-      expect(scoresOutput[gatewayID].staker[subType]).toEqual({
-        point: 0,
-        PDAs: [],
-      });
-    });
-
-    test("should create a  Sub-block with type 'validator'", () => {
-      // Act
-      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
-      // Assert
-      expect(scoresOutput[gatewayID].staker).toEqual({
-        validator: { PDAs: [], point: 0 },
-      });
-    });
-
-    test("should create a  Sub-block with type 'gateway'", () => {
-      // Arrange
       scoresOutput = {
         gatewayID: {
           staker: {
-            gateway: {
-              point: 0,
-              PDAs: [],
+            validator: {
+              point: 17,
+              PDAs: [PDA],
             },
           },
         },
       };
+      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
+      expect(scoresOutput[gatewayID].staker[subType]).toEqual({
+        point: 17,
+        PDAs: [PDA],
+      });
+      expect(scoresOutput[gatewayID].staker.validator).toBeDefined();
+    });
+
+    test("should create a Sub-block with type 'validator'", () => {
+      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
+      expect(scoresOutput[gatewayID].staker).toEqual({
+        validator: { PDAs: [], point: 0 },
+      });
+      expect(scoresOutput[gatewayID].staker.validator).toBeDefined();
+      expect(scoresOutput[gatewayID].staker.gateway).toBeUndefined();
+    });
+
+    test("should create a Sub-block with type 'gateway'", () => {
       subType = 'gateway';
       scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
-      // Assert
       expect(scoresOutput[gatewayID].staker).toEqual({
         gateway: { PDAs: [], point: 0 },
       });
+      expect(scoresOutput[gatewayID].staker.gateway).toBeDefined();
+      expect(scoresOutput[gatewayID].staker.validator).toBeUndefined();
     });
   });
 
