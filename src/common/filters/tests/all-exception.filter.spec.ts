@@ -13,18 +13,14 @@ describe('AllExceptionsFilter', () => {
   let hostMock: ArgumentsHost;
   let applicationRefMock: any;
 
-  // Setup before each test
   beforeEach(async () => {
-    // Create a testing module
     const module: TestingModule = await Test.createTestingModule({
       providers: [AllExceptionsFilter, WinstonProvider],
     }).compile();
 
-    // Initialize instances for testing
     filter = module.get<AllExceptionsFilter>(AllExceptionsFilter);
     logger = module.get<WinstonProvider>(WinstonProvider);
 
-    // Mock the host and applicationRef
     hostMock = {
       getArgByIndex: jest.fn(() => ({ headersSent: false })),
     } as unknown as ArgumentsHost;
@@ -34,28 +30,25 @@ describe('AllExceptionsFilter', () => {
       end: jest.fn(),
     };
 
-    // Clear all mocks before each test
     jest.clearAllMocks();
   });
 
-  // Basic test to check if the filter is defined
   test('Should be defined', () => {
+    // Assert
     expect(filter).toBeDefined();
   });
 
-  // Describe the 'handleUnknownError' method tests
   describe('handleUnknownError', () => {
-    // Basic test to check if the method is defined
     test('Should be defined', () => {
+      // Assert
       expect(filter.handleUnknownError).toBeDefined();
     });
 
-    // Test to check if the method handles unknown error, logs it, and responds appropriately
     test('Should handle unknown error and log it', () => {
+      // Arrange
       const exception = new Error('Test error');
       filter.handleUnknownError(exception, hostMock, applicationRefMock);
-
-      // Assertions for response handling and logging
+      // Assert
       expect(applicationRefMock.isHeadersSent).toHaveBeenCalled();
       expect(applicationRefMock.reply).toHaveBeenCalledWith(
         expect.anything(),
@@ -71,18 +64,19 @@ describe('AllExceptionsFilter', () => {
       });
     });
 
-    // Test to check if the method ends the response if headers are already sent and calls error method from logger when exception is an object
     test('Should end the response if headers are already sent and call error method from logger when exception is an object', () => {
+      // Arrange
       const exception = new Error('Test error');
       applicationRefMock.isHeadersSent = jest.fn(() => true);
       filter.handleUnknownError(exception, hostMock, applicationRefMock);
+      // Assert
       expect(applicationRefMock.end).toHaveBeenCalledWith(expect.anything());
       expect(applicationRefMock.reply).not.toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalledTimes(1);
     });
 
-    // Test to check if the method ends the response if headers are already sent and calls error method from logger when exception is not an object
     test('Should end the response if headers are already sent and call error method from logger when exception is not an object', () => {
+      // Arrange
       const exception = new Error('Test error');
       applicationRefMock.isHeadersSent = jest.fn(() => true);
       filter.handleUnknownError(
@@ -90,6 +84,7 @@ describe('AllExceptionsFilter', () => {
         hostMock,
         applicationRefMock,
       );
+      // Assert
       expect(applicationRefMock.end).toHaveBeenCalledWith(expect.anything());
       expect(applicationRefMock.reply).not.toHaveBeenCalled();
       expect(logger.error).toHaveBeenCalledTimes(1);

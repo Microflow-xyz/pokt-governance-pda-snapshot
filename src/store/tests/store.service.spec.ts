@@ -7,7 +7,7 @@ import { IssuedPDA } from '../../pda/interfaces/pda.interface';
 import { ScoringDomainBlock } from '../../scoring/interfaces/scoring.interface';
 import { StoreService } from '../store.service';
 
-// Mock the ArweaveProvider module
+// Mock the WinstonProvider
 jest.mock('@common/arweave/arweave.provider');
 
 // Describe the test suite for the StoreService
@@ -16,43 +16,34 @@ describe('StoreService', () => {
   let config: ConfigService;
   let arweave: ArweaveProvider;
 
-  // Setup before each test
   beforeEach(async () => {
-    // Create a testing module
     const module: TestingModule = await Test.createTestingModule({
       providers: [StoreService, ConfigService, ArweaveProvider],
     }).compile();
 
-    // Initialize instances for testing
     service = module.get<StoreService>(StoreService);
     config = module.get<ConfigService>(ConfigService);
     arweave = module.get<ArweaveProvider>(ArweaveProvider);
 
-    // Clear all mocks before each test
     jest.clearAllMocks();
   });
 
-  // Basic test to check if the service is defined
   test('Should be defined', () => {
+    // Assert
     expect(service).toBeDefined();
   });
 
-  // Describe the 'storePDAsBlock' method tests
   describe('storePDAsBlock', () => {
     let scores: PDAScores<ScoringDomainBlock>;
     let PDA: IssuedPDA;
     let tags: Array<ArweaveTag>;
 
-    // Setup before each test
     beforeEach(() => {
-      // Mocked tags for Arweave
       tags = [
         { name: 'Content-Type', value: 'application/json' },
         { name: 'Application-ID', value: 'POKT-NETWORK-PDA-SCORING-SYSTEM' },
         { name: 'Data-ID', value: 'PDAs' },
       ];
-
-      // Mocked IssuedPDA and scores
       PDA = {
         status: 'Valid',
         dataAsset: {
@@ -75,49 +66,149 @@ describe('StoreService', () => {
         },
       };
 
-      // Mocked methods and configurations
       jest.spyOn(config, 'get').mockReturnValue('arweaveBaseURL+');
       jest.spyOn(arweave, 'storeData').mockResolvedValue('mockedTransactionId');
     });
 
-    // Basic test to check if the method is defined
     test('Should be defined', () => {
+      // Assert
       expect(service['storePDAsBlock']).toBeDefined();
     });
 
-    // Test to check if the method calls get method with correct parameter
     test('Should call get method with correct parameter', () => {
+      // Act
       service['storePDAsBlock'](scores);
+      // Assert
       expect(config.get).toHaveBeenCalledWith('ARWEAVE_BASE_URL');
     });
 
-    // Test to check if the method does not start the loop when gatewayID is not in scores
     test('Should not start loop when gatewayID is not in scores', async () => {
+      // Arrange
       scores = {};
+      // Act
       await service['storePDAsBlock'](scores);
+      // Assert
       expect(arweave.storeData).toHaveBeenCalledTimes(0);
     });
 
-    // Test to check if the method calls storeData method from arweaveProvider with correct parameters when citizenPDAs.length > 0 and update PDAs
     test('Should call storeData method from arweaveProvider with correct parameters when citizenPDAs.length > 0 and update PDAs', async () => {
+      // Act
       await service['storePDAsBlock'](scores);
+      // Assert
       expect(arweave.storeData).toHaveBeenCalledTimes(1);
       expect(arweave.storeData).toHaveBeenCalledWith([PDA], tags);
       expect(scores['gatewayID'].citizen.PDAs).toEqual(
         'arweaveBaseURL+mockedTransactionId',
       );
     });
-
-    // ... Additional similar tests for other PDA types ...
+    test('Should call storeData method from arweaveProvider with correct parameters when builderPDAs.length > 0 and update PDAs', async () => {
+      // Arrange
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 2,
+            pdaType: 'builder',
+            pdaSubtype: 'Bounty Hunter',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      scores = {
+        gatewayID: {
+          builder: {
+            point: 2,
+            PDAs: [PDA],
+          },
+        },
+      };
+      // Act
+      await service['storePDAsBlock'](scores);
+      // Assert
+      expect(arweave.storeData).toHaveBeenCalledTimes(1);
+      expect(arweave.storeData).toHaveBeenCalledWith([PDA], tags);
+      expect(scores['gatewayID'].builder.PDAs).toEqual(
+        'arweaveBaseURL+mockedTransactionId',
+      );
+    });
+    test('Should call storeData method from arweaveProvider with correct parameters when validatorStakerPDAs.length > 0 and update PDAs', async () => {
+      // Arrange
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 4,
+            pdaType: 'staker',
+            pdaSubtype: 'Validator',
+            type: 'custodian',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      scores = {
+        gatewayID: {
+          staker: {
+            validator: {
+              point: 4,
+              PDAs: [PDA],
+            },
+          },
+        },
+      };
+      // Act
+      await service['storePDAsBlock'](scores);
+      // Assert
+      expect(arweave.storeData).toHaveBeenCalledTimes(1);
+      expect(arweave.storeData).toHaveBeenCalledWith([PDA], tags);
+      expect(scores['gatewayID'].staker.validator.PDAs).toEqual(
+        'arweaveBaseURL+mockedTransactionId',
+      );
+    });
+    test('Should call storeData method from arweaveProvider with correct parameters when gatewayStakerPDAs.length > 0 and update PDAs', async () => {
+      // Arrange
+      PDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 4,
+            pdaType: 'staker',
+            pdaSubtype: 'Gateway',
+            type: 'custodian',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      scores = {
+        gatewayID: {
+          staker: {
+            gateway: {
+              point: 0,
+              PDAs: [PDA],
+            },
+          },
+        },
+      };
+      // Act
+      await service['storePDAsBlock'](scores);
+      // Assert
+      expect(arweave.storeData).toHaveBeenCalledTimes(1);
+      expect(arweave.storeData).toHaveBeenCalledWith([PDA], tags);
+      expect(scores['gatewayID'].staker.gateway.PDAs).toEqual(
+        'arweaveBaseURL+mockedTransactionId',
+      );
+    });
   });
 
-  // Describe the 'storeScores' method tests
   describe('storeScores', () => {
     let scores: PDAScores<ScoringDomainBlock>;
 
-    // Setup before each test
     beforeEach(() => {
-      // Mocked scores
       scores = {
         gatewayID: {
           citizen: {
@@ -127,25 +218,27 @@ describe('StoreService', () => {
         },
       };
 
-      // Mocked method and configuration
       jest.spyOn(config, 'get').mockReturnValue('');
     });
 
-    // Basic test to check if the method is defined
     test('Should be defined', () => {
+      // Assert
       expect(service.storeScores).toBeDefined();
     });
 
-    // Test to check if the method calls get method from config
     test('Should call get method from config', () => {
+      // Act
       service.storeScores(scores);
+      // Assert
       expect(config.get).toHaveBeenCalledWith('ARWEAVE_BASE_URL');
     });
 
-    // Test to check if the method calls storePDAsBlock with correct parameters
     test('Should call storePDAsBlock with correct parameters', async () => {
+      // Arrange
       jest.spyOn(service as any, 'storePDAsBlock').mockResolvedValue(undefined);
+      // Act
       await service.storeScores(scores);
+      // Assert
       expect(service['storePDAsBlock']).toHaveBeenCalledWith(scores);
       expect(arweave['storeData']).toHaveBeenCalledTimes(1);
       expect(await service.storeScores(scores)).toBe('mockedTransactionId');
