@@ -7,7 +7,6 @@ import { StoreService } from '../store/store.service';
 
 jest.mock('@common/winston/winston.provider');
 jest.mock('../pda/pda.service');
-// jest.mock('../scoring/scoring.service');
 jest.mock('../store/store.service');
 
 describe('CoreService', () => {
@@ -37,7 +36,6 @@ describe('CoreService', () => {
     jest.clearAllMocks();
   });
   test('Should be defined', () => {
-    // Assert
     expect(coreService).toBeDefined();
   });
 
@@ -46,7 +44,6 @@ describe('CoreService', () => {
       await coreService.handler();
     });
     test('Should be defined', () => {
-      // Assert
       expect(coreService).toBeDefined();
     });
     test('Should Get all issued PDAs and call debug method from logger using all issued PDA ', async () => {
@@ -66,7 +63,7 @@ describe('CoreService', () => {
         CoreService.name,
       );
     });
-    test('Should Store Scores & PDAs and and call log method from logger using arweaveURL', async () => {
+    test('Should Store Scores and PDAs and and call log method from logger using arweaveURL', async () => {
       await coreService.handler();
       expect(storeService.storeScores).toHaveBeenCalled();
       expect(logger.log).toHaveBeenCalledWith(
