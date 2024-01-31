@@ -11,13 +11,10 @@ describe('Arweave Provider', () => {
   let irys: Irys;
   const bign = new BigNumber('BigNumber.VALUE');
 
-  // Setup before each test
   beforeEach(async () => {
-    // Create a testing module
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
-          // Mock IRYS_CONNECTOR with specific methods and values
           provide: IRYS_CONNECTOR,
           useValue: {
             getPrice: jest.fn().mockResolvedValue(bign),
@@ -29,25 +26,21 @@ describe('Arweave Provider', () => {
       ],
     }).compile();
 
-    // Initialize instances for testing
     provider = module.get<ArweaveProvider>(ArweaveProvider);
     irys = module.get<Irys>(IRYS_CONNECTOR);
 
-    // Clear all mocks before each test
     jest.clearAllMocks();
   });
 
-  // Basic test to check if the provider is defined
   test('Should be defined', () => {
+    // Assert
     expect(provider).toBeDefined();
   });
 
-  // Describe the 'calculateSizeOfData' method tests
   describe('calculateSizeOfData', () => {
     let data: string;
     let tags: Array<ArweaveTag>;
 
-    // Setup before each test
     beforeEach(() => {
       data = '';
       tags = [
@@ -58,18 +51,18 @@ describe('Arweave Provider', () => {
       ];
     });
 
-    // Basic test to check if the method is defined
     test('Should be defined', () => {
+      // Assert
       expect(provider['calculateSizeOfData']).toBeDefined();
     });
 
-    // Test to check if the method returns 0 when inputs are empty
     test('Should return 0 when inputs are empty', () => {
+      // Assert
       expect(provider['calculateSizeOfData'](data, tags)).toEqual(0);
     });
 
-    // Test to check if the method loops on tags and calculates them and returns number 22
     test('Should loops on tags and calculate them and return number 22', () => {
+      // Arrange
       data = 'data';
       tags = [
         {
@@ -81,12 +74,12 @@ describe('Arweave Provider', () => {
           value: 'value',
         },
       ];
-
+      // Assert
       expect(provider['calculateSizeOfData'](data, tags)).toEqual(22);
     });
 
-    // Test to check if the method calls byteLength method from Buffer
     test('Should call byteLength method from Buffer', () => {
+      // Arrange
       data = 'data';
       tags = [
         {
@@ -95,7 +88,9 @@ describe('Arweave Provider', () => {
         },
       ];
       jest.spyOn(Buffer, 'byteLength').mockReturnValue(1);
+      // Act
       provider['calculateSizeOfData'](data, tags);
+      // Assert
       expect(Buffer.byteLength).toHaveBeenCalledWith('data', 'utf-8');
       expect(Buffer.byteLength).toHaveBeenCalledWith('name', 'utf-8');
       expect(Buffer.byteLength).toHaveBeenCalledWith('value', 'utf-8');
@@ -103,34 +98,33 @@ describe('Arweave Provider', () => {
     });
   });
 
-  // Describe the 'fundNodeBasedOnSize' method tests
   describe('fundNodeBasedOnSize', () => {
-    // Basic test to check if the method is defined
     test('Should be defined', () => {
+      // Assert
       expect(provider['fundNodeBasedOnSize']).toBeDefined();
     });
 
-    // Test to check if the method calls getPrice with correct parameter
     test('Should call getPrice with correct parameter', async () => {
+      // Act
       await provider['fundNodeBasedOnSize'](10);
+      // Assert
       expect(irys.getPrice).toHaveBeenCalledWith(10);
       expect(irys.getPrice).toHaveBeenCalledTimes(1);
     });
 
-    // Test to check if the method calls fund method from irys with correct parameter
     test('Should call fund method from irys with correct parameter', async () => {
+      // Act
       await provider['fundNodeBasedOnSize'](10);
+      // Assert
       expect(irys.fund).toHaveBeenCalledTimes(1);
       expect(irys.fund).toHaveBeenCalledWith(bign);
     });
   });
 
-  // Describe the 'storeData' method tests
   describe('storeData', () => {
     let data: Record<string, any>;
     let tags: Array<ArweaveTag>;
 
-    // Setup before each test
     beforeEach(async () => {
       data = { id: 'id' };
       tags = [
@@ -141,28 +135,32 @@ describe('Arweave Provider', () => {
       ];
     });
 
-    // Basic test to check if the method is defined
     test('Should be defined', () => {
+      // Assert
       expect(provider.storeData).toBeDefined();
     });
 
-    // Test to check if the method calls stringify method from JSON
     test('Should call stringify method from JSON', async () => {
+      // Arrange
       jest.spyOn(JSON, 'stringify').mockReturnValue('');
+      // Act
       await provider.storeData(data, tags);
+      // Assert
       expect(JSON.stringify).toHaveBeenCalledWith(data);
     });
 
-    // Test to check if the method funds to Node based on uploading data size
     test('Should fund to Node based on uploading data size', async () => {
+      // Arrange
       jest.spyOn(provider as any, 'calculateSizeOfData').mockReturnValue(17);
       jest.spyOn(provider as any, 'fundNodeBasedOnSize');
+      // Act
       await provider.storeData(data, tags);
+      // Assert
       expect(provider['fundNodeBasedOnSize']).toHaveBeenCalledWith(17);
     });
 
-    // Test to check if the method returns receipt.id
     test('Should return receipt.id', async () => {
+      // Assert
       expect(await provider.storeData(data, tags)).toEqual('id');
     });
   });
