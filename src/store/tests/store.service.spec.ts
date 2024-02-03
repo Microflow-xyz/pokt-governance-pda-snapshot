@@ -1,5 +1,6 @@
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
+import moment from 'moment';
 import { ArweaveProvider } from '@common/arweave/arweave.provider';
 import { ArweaveTag } from '@common/arweave/interfaces/arweave.interface';
 import { PDAScores } from '@common/interfaces/common.interface';
@@ -207,8 +208,16 @@ describe('StoreService', () => {
 
   describe('storeScores', () => {
     let scores: PDAScores<ScoringDomainBlock>;
-
+    let tags: Array<ArweaveTag>;
+    let returnValue;
     beforeEach(() => {
+      const startTimeOfYesterday = moment().utc().add(-1, 'day').startOf('day');
+      tags = [
+        { name: 'Content-Type', value: 'application/json' },
+        { name: 'Application-ID', value: 'POKT-NETWORK-PDA-SCORING-SYSTEM' },
+        { name: 'Data-ID', value: 'PDAs-SCORES' },
+        { name: 'Unix-Timestamp', value: String(startTimeOfYesterday.unix()) },
+      ];
       scores = {
         gatewayID: {
           citizen: {
@@ -218,7 +227,9 @@ describe('StoreService', () => {
         },
       };
 
-      jest.spyOn(config, 'get').mockReturnValue('');
+      jest.spyOn(config, 'get').mockReturnValue('ARWEAVE_BASE_URL+');
+      jest.spyOn(arweave, 'storeData').mockResolvedValue('transaction_id');
+      jest.spyOn(service as any, 'storePDAsBlock').mockResolvedValue(undefined);
     });
 
     test('Should be defined', () => {
@@ -234,14 +245,23 @@ describe('StoreService', () => {
     });
 
     test('Should call storePDAsBlock with correct parameters', async () => {
-      // Arrange
-      jest.spyOn(service as any, 'storePDAsBlock').mockResolvedValue(undefined);
       // Act
       await service.storeScores(scores);
       // Assert
       expect(service['storePDAsBlock']).toHaveBeenCalledWith(scores);
       expect(arweave['storeData']).toHaveBeenCalledTimes(1);
-      expect(await service.storeScores(scores)).toBe('mockedTransactionId');
+    });
+    test('Should call storeData method from arweaveProvider with correct parameters', async () => {
+      // Act
+      await service.storeScores(scores);
+      // Assert
+      expect(arweave.storeData).toHaveBeenCalledWith(scores, tags);
+    });
+    test('Should returtn "arweaveBaseURL + transaction_id" ', async () => {
+      // Act
+      returnValue = await service.storeScores(scores);
+      // Assert
+      expect(returnValue).toEqual('ARWEAVE_BASE_URL+transaction_id');
     });
   });
 });
