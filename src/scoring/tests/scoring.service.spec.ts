@@ -43,7 +43,6 @@ describe('ScoringService', () => {
       expect(ScoresOutput).toHaveProperty(gatewayID);
       expect(ScoresOutput[gatewayID]).toEqual({});
     });
-
     test('Should not append an existing gatewayID to scoresOutput', () => {
       // Arrange
       const scoresOutput = {
@@ -94,7 +93,6 @@ describe('ScoringService', () => {
       // Assert
       expect(scoring['appendDomainBlock']).toBeDefined();
     });
-
     test('should create a "citizen" domain block with correct parameters', () => {
       // Arrange
       domain = 'citizen';
@@ -105,7 +103,6 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].staker).toBeUndefined();
       expect(scoresOutput[gatewayID].citizen).toEqual({ point: 0, PDAs: [] });
     });
-
     test('should create a "builder" domain block with correct parameters', () => {
       // Arrange
       domain = 'builder';
@@ -117,7 +114,6 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].staker).toBeUndefined();
       expect(scoresOutput[gatewayID].builder).toEqual({ point: 0, PDAs: [] });
     });
-
     test('should create a "staker" domain block with correct parameters', () => {
       // Arrange
       domain = 'staker';
@@ -129,7 +125,6 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].builder).toBeUndefined();
       expect(scoresOutput[gatewayID][domain]).toEqual({});
     });
-
     test('Should not append domain block if domain exists in gatewayID', () => {
       // Arrange
       scoresOutput = {
@@ -168,7 +163,6 @@ describe('ScoringService', () => {
     test('Should be defined', () => {
       expect(scoring['appendStackerSubBlock']).toBeDefined();
     });
-
     test(`should not add a new sub-block
      if subType already exists`, () => {
       // Arrange
@@ -205,7 +199,6 @@ describe('ScoringService', () => {
       });
       expect(scoresOutput[gatewayID].staker.validator).toBeDefined();
     });
-
     test("should create a Sub-block with type 'validator'", () => {
       // Act
       scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
@@ -216,7 +209,6 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].staker.validator).toBeDefined();
       expect(scoresOutput[gatewayID].staker.gateway).toBeUndefined();
     });
-
     test("should create a Sub-block with type 'gateway'", () => {
       // Arrange
       subType = 'gateway';
@@ -281,7 +273,6 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].citizen.PDAs.length).toEqual(2);
       expect(scoresOutput[gatewayID].citizen.point).toEqual(0);
     });
-
     test('Point should be 0 when citizen has no "POKT DAO"', () => {
       // Arrange
       PDA = {
@@ -305,7 +296,6 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].citizen.PDAs.length).toEqual(2);
       expect(scoresOutput[gatewayID].citizen.point).toEqual(0);
     });
-
     test('Point should be 1 when citizen has both "POKT DAO" and "POKT DNA"', () => {
       // Arrange
       scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
@@ -387,7 +377,6 @@ describe('ScoringService', () => {
       // Assert
       expect(scoring['calculateBuildersPoint']).toBeDefined();
     });
-
     test('Should store related PDA', () => {
       // Act
       scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
@@ -413,7 +402,6 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].builder.PDAs.length).toEqual(1);
       expect(scoresOutput[gatewayID].builder.point).toEqual(2);
     });
-
     test('Should update max value for each builder subType', () => {
       // Arrange
       PDA = {
@@ -436,7 +424,6 @@ describe('ScoringService', () => {
       expect(pointer.point).toEqual(3);
       expect(pointer.PDAs.length).toEqual(2);
     });
-
     test('Should calculate total points correctly', () => {
       // Arrange
       PDA = {
@@ -473,7 +460,6 @@ describe('ScoringService', () => {
       expect(pointer.point).toEqual(8);
       expect(pointer.PDAs.length).toEqual(3);
     });
-
     test('Should set point equal 10 if point is greater than 10', () => {
       // Arrange
       PDA = {
@@ -558,7 +544,6 @@ describe('ScoringService', () => {
       // Assert
       expect(scoring['calculateStakersPoint']).toBeDefined();
     });
-
     test('Should store related PDA', () => {
       // Act
       scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
@@ -566,7 +551,6 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].staker.validator.PDAs).toContain(PDA);
       expect(scoresOutput[gatewayID].staker.validator.PDAs.length).toEqual(1);
     });
-
     test(`The square root of the sum of PDA points should be assigned as the point value
  when the PDA_SUB_TYPE is equal to 'validator'`, () => {
       // Act
@@ -575,7 +559,6 @@ describe('ScoringService', () => {
       // Assert
       expect(pointer.point).toEqual(2);
     });
-
     test(`Sum of PDA points should be assigned as the point value
  when the PDA_SUB_TYPE is equal to 'gateway'`, () => {
       // Arrange
@@ -625,7 +608,6 @@ describe('ScoringService', () => {
       expect(pointer.point).toEqual(8);
       expect(pointer.PDAs.length).toEqual(2);
     });
-
     test(`Should call warm method from logger
 when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
       // Arrange
@@ -677,9 +659,9 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
     });
   });
 
-  describe('calculateScores method', () => {
+  describe('calculateScores', () => {
     let PDA: IssuedPDA;
-    let returnValue;
+    let returnValue: PDAScores<ScoringDomainBlock>;
     beforeEach(() => {
       PDA = {
         status: 'Valid',
@@ -700,14 +682,12 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
       // Assert
       expect(scoring.calculateScores).toBeDefined();
     });
-
     test(`Should call appendGatewayID and add gatewayID to scoresOutput`, () => {
       // Act
       returnValue = scoring.calculateScores([PDA]);
       // Assert
       expect(returnValue['gatewayID']).toBeDefined();
     });
-
     test("Should return {} if PDA is not 'Valid'", () => {
       // Arrange
       PDA = {
@@ -728,6 +708,16 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
       returnValue = scoring.calculateScores([PDA]);
       // Assert
       expect(returnValue).toEqual({});
+    });
+
+    test('Should call appendGatewayID method and create empty object for new gatewayID', async () => {
+      // Arrange
+      jest.spyOn(scoring as any, 'appendGatewayID');
+      // Act
+      returnValue = scoring.calculateScores([PDA]);
+      // Assert
+      expect(scoring['appendGatewayID']).toHaveBeenCalled();
+      expect(returnValue['gatewayID']).toBeDefined();
     });
 
     test(`Should call appendDomainBlock and calculateCitizensPoint
