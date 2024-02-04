@@ -229,7 +229,7 @@ describe('StoreService', () => {
 
       jest.spyOn(config, 'get').mockReturnValue('ARWEAVE_BASE_URL+');
       jest.spyOn(arweave, 'storeData').mockResolvedValue('transaction_id');
-      jest.spyOn(service as any, 'storePDAsBlock').mockResolvedValue(undefined);
+      jest.spyOn(service as any, 'storePDAsBlock');
     });
 
     test('Should be defined', () => {
