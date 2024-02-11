@@ -1,12 +1,17 @@
 import { NestFactory } from '@nestjs/core';
+import { Handler } from 'aws-lambda';
 import { WinstonProvider } from '@common/winston/winston.provider';
 import { CoreModule } from './core.module';
+import { CoreService } from './core.service';
 
-async function bootstrap() {
+export const handler: Handler = async () => {
   const app = await NestFactory.createApplicationContext(CoreModule, {
     bufferLogs: true,
   });
 
   app.useLogger(app.get(WinstonProvider));
-}
-bootstrap();
+
+  const coreService = app.get<CoreService>(CoreService);
+
+  return await coreService.handler();
+};

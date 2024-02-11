@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import { WinstonProvider } from '@common/winston/winston.provider';
 import { PDAService } from './pda/pda.service';
 import { ScoringService } from './scoring/scoring.service';
@@ -14,7 +13,6 @@ export class CoreService {
     private readonly logger: WinstonProvider,
   ) {}
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
   async handler() {
     this.logger.log('The job executed', CoreService.name);
     // Get all issued PDAs
