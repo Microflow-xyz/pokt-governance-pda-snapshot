@@ -15,39 +15,39 @@ import { ScoringStakerSubType } from './types/scoring.type';
 export class ScoringService {
   constructor(private readonly logger: WinstonProvider) {}
 
-  private appendGatewayID(
+  private appendETHVotingAddr(
     scoresOutput: PDAScores<ScoringDomainBlock>,
-    gatewayID: string,
+    ETHVotingAddr: string,
   ) {
-    if (!(gatewayID in scoresOutput)) {
-      scoresOutput[gatewayID] = {};
+    if (!(ETHVotingAddr in scoresOutput)) {
+      scoresOutput[ETHVotingAddr] = {};
     }
   }
 
   private appendDomainBlock(
     scoresOutput: PDAScores<ScoringDomainBlock>,
-    gatewayID: string,
+    ETHVotingAddr: string,
     domain: PDAType,
   ) {
-    if (!(domain in scoresOutput[gatewayID])) {
+    if (!(domain in scoresOutput[ETHVotingAddr])) {
       if (domain !== 'staker') {
-        scoresOutput[gatewayID][domain] = {
+        scoresOutput[ETHVotingAddr][domain] = {
           point: 0,
           PDAs: [],
         };
       } else {
-        scoresOutput[gatewayID][domain] = {};
+        scoresOutput[ETHVotingAddr][domain] = {};
       }
     }
   }
 
   private appendStackerSubBlock(
     scoresOutput: PDAScores<ScoringDomainBlock>,
-    gatewayID: string,
+    ETHVotingAddr: string,
     subType: Lowercase<StakerPDASubType>,
   ) {
-    if (!(subType in scoresOutput[gatewayID].staker)) {
-      scoresOutput[gatewayID].staker[subType] = {
+    if (!(subType in scoresOutput[ETHVotingAddr].staker)) {
+      scoresOutput[ETHVotingAddr].staker[subType] = {
         point: 0,
         PDAs: [],
       };
@@ -56,10 +56,10 @@ export class ScoringService {
 
   private calculateCitizensPoint(
     scoresOutput: PDAScores<ScoringDomainBlock>,
-    gatewayID: string,
+    ETHVotingAddr: string,
     PDA: IssuedPDA,
   ) {
-    const pointer = scoresOutput[gatewayID].citizen;
+    const pointer = scoresOutput[ETHVotingAddr].citizen;
 
     // Store related PDA
     pointer.PDAs.push(PDA);
@@ -93,10 +93,10 @@ export class ScoringService {
 
   private calculateBuildersPoint(
     scoresOutput: PDAScores<ScoringDomainBlock>,
-    gatewayID: string,
+    ETHVotingAddr: string,
     PDA: IssuedPDA,
   ) {
-    const pointer = scoresOutput[gatewayID].builder;
+    const pointer = scoresOutput[ETHVotingAddr].builder;
 
     // Store related PDA
     pointer.PDAs.push(PDA);
@@ -148,15 +148,15 @@ export class ScoringService {
 
   private calculateStakersPoint(
     scoresOutput: PDAScores<ScoringDomainBlock>,
-    gatewayID: string,
+    ETHVotingAddr: string,
     PDA: IssuedPDA,
   ) {
     const PDA_SUB_TYPE =
       PDA.dataAsset.claim.pdaSubtype.toLowerCase() as ScoringStakerSubType;
 
-    this.appendStackerSubBlock(scoresOutput, gatewayID, PDA_SUB_TYPE);
+    this.appendStackerSubBlock(scoresOutput, ETHVotingAddr, PDA_SUB_TYPE);
 
-    const pointer = scoresOutput[gatewayID].staker[
+    const pointer = scoresOutput[ETHVotingAddr].staker[
       PDA_SUB_TYPE
     ] as ScoringDomainBlock;
     // Store related PDA
@@ -173,10 +173,7 @@ export class ScoringService {
     } else if (PDA_SUB_TYPE === 'gateway') {
       pointer.point = sumOfPoints;
     } else if (PDA_SUB_TYPE === 'liquidity provider') {
-      this.logger.warn(
-        `Skipped PDA sub type (${PDA_SUB_TYPE}) for staker`,
-        ScoringService.name,
-      );
+      pointer.point = sumOfPoints;
     } else {
       this.logger.error(
         `Invalid PDA sub type (${PDA_SUB_TYPE}) for staker`,
@@ -187,38 +184,59 @@ export class ScoringService {
 
   calculateScores(PDAs: Array<IssuedPDA>): PDAScores<ScoringDomainBlock> {
     const scoresOutput: PDAScores<ScoringDomainBlock> = {};
+    const GIDToEthVotingAddr: Record<string, string> = {};
+    const canBeScoredPDAs: Array<IssuedPDA> = [];
 
+    // find voting address and PDAs that can be scored
     for (let index = 0; index < PDAs.length; index++) {
       const PDA = PDAs[index];
 
-      if (PDA.status === 'Valid') {
-        const GATEWAY_ID = PDA.dataAsset.owner.gatewayId;
-        const PDA_TYPE = PDA.dataAsset.claim.pdaType;
+      const GATEWAY_ID = PDA.dataAsset.owner.gatewayId;
+      const PDA_TYPE = PDA.dataAsset.claim.pdaType;
 
-        // Create empty object for new gatewayID
-        this.appendGatewayID(scoresOutput, GATEWAY_ID);
+      if (
+        PDA_TYPE === 'citizen' &&
+        PDA.dataAsset.claim.pdaSubtype === 'POKT DAO'
+      ) {
+        GIDToEthVotingAddr[GATEWAY_ID] = PDA.dataAsset.claim.votingAddress;
+      }
 
-        if (PDA_TYPE === 'citizen') {
-          // Create empty object with initial values for citizen domain
-          this.appendDomainBlock(scoresOutput, GATEWAY_ID, PDA_TYPE);
-          // calculate point and append PDAs
-          this.calculateCitizensPoint(scoresOutput, GATEWAY_ID, PDA);
-        } else if (PDA_TYPE === 'builder') {
-          // Create empty object with initial values for builder domain
-          this.appendDomainBlock(scoresOutput, GATEWAY_ID, PDA_TYPE);
-          // Calculate point and append PDAs
-          this.calculateBuildersPoint(scoresOutput, GATEWAY_ID, PDA);
-        } else if (PDA_TYPE === 'staker') {
-          // Create empty object with initial values for staker domain
-          this.appendDomainBlock(scoresOutput, GATEWAY_ID, PDA_TYPE);
-          // Calculate point and append PDAs
-          this.calculateStakersPoint(scoresOutput, GATEWAY_ID, PDA);
-        } else {
-          this.logger.error(
-            `Unknown PDA type (${PDA_TYPE}) exists`,
-            ScoringService.name,
-          );
-        }
+      if (GATEWAY_ID in GIDToEthVotingAddr) {
+        canBeScoredPDAs.push(PDA);
+      }
+    }
+
+    // calculate scores of PDAs that can be scored
+    for (let index = 0; index < canBeScoredPDAs.length; index++) {
+      const PDA = canBeScoredPDAs[index];
+
+      const GATEWAY_ID = PDA.dataAsset.owner.gatewayId;
+      const PDA_TYPE = PDA.dataAsset.claim.pdaType;
+      const ETH_VOTING_ADDR = GIDToEthVotingAddr[GATEWAY_ID];
+
+      // Create empty object for new gatewayID
+      this.appendETHVotingAddr(scoresOutput, ETH_VOTING_ADDR);
+
+      if (PDA_TYPE === 'citizen') {
+        // Create empty object with initial values for citizen domain
+        this.appendDomainBlock(scoresOutput, ETH_VOTING_ADDR, PDA_TYPE);
+        // calculate point and append PDAs
+        this.calculateCitizensPoint(scoresOutput, ETH_VOTING_ADDR, PDA);
+      } else if (PDA_TYPE === 'builder') {
+        // Create empty object with initial values for builder domain
+        this.appendDomainBlock(scoresOutput, ETH_VOTING_ADDR, PDA_TYPE);
+        // Calculate point and append PDAs
+        this.calculateBuildersPoint(scoresOutput, ETH_VOTING_ADDR, PDA);
+      } else if (PDA_TYPE === 'staker') {
+        // Create empty object with initial values for staker domain
+        this.appendDomainBlock(scoresOutput, ETH_VOTING_ADDR, PDA_TYPE);
+        // Calculate point and append PDAs
+        this.calculateStakersPoint(scoresOutput, ETH_VOTING_ADDR, PDA);
+      } else {
+        this.logger.error(
+          `Unknown PDA type (${PDA_TYPE}) exists`,
+          ScoringService.name,
+        );
       }
     }
 
