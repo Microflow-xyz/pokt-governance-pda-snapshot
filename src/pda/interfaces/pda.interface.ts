@@ -23,7 +23,13 @@ export interface IssuedPDA {
   status: 'Valid' | 'Suspended' | 'Revoked' | 'Expired';
   dataAsset: {
     claim:
-      | PDAClaimBase<'citizen'>
+      | (PDAClaimBase<'citizen'> & {
+          pdaSubtype: 'POKT DAO';
+          votingAddress: string;
+        })
+      | (PDAClaimBase<'citizen'> & {
+          pdaSubtype: 'POKT DNA';
+        })
       | PDAClaimBase<'builder'>
       | (PDAClaimBase<'staker'> & StakerPDAClaim);
     owner: {
