@@ -196,7 +196,7 @@ export class ScoringService {
 
       if (
         PDA_TYPE === 'citizen' &&
-        PDA.dataAsset.claim.pdaSubtype === 'POKT DAO'
+        PDA.dataAsset.claim.pdaSubtype === 'POKT DNA'
       ) {
         GIDToEthVotingAddr[GATEWAY_ID] = PDA.dataAsset.claim.votingAddress;
       }

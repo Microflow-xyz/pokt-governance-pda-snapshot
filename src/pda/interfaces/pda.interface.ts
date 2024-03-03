@@ -25,10 +25,10 @@ export interface IssuedPDA {
     claim:
       | (PDAClaimBase<'citizen'> & {
           pdaSubtype: 'POKT DAO';
-          votingAddress: string;
         })
       | (PDAClaimBase<'citizen'> & {
           pdaSubtype: 'POKT DNA';
+          votingAddress: string;
         })
       | PDAClaimBase<'builder'>
       | (PDAClaimBase<'staker'> & StakerPDAClaim);
