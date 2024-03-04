@@ -192,13 +192,18 @@ export class ScoringService {
       const PDA = PDAs[index];
 
       const GATEWAY_ID = PDA.dataAsset.owner.gatewayId;
-      const PDA_TYPE = PDA.dataAsset.claim.pdaType;
+      // const PDA_TYPE = PDA.dataAsset.claim.pdaType;
 
-      if (
-        PDA_TYPE === 'citizen' &&
-        PDA.dataAsset.claim.pdaSubtype === 'POKT DAO'
-      ) {
-        GIDToEthVotingAddr[GATEWAY_ID] = PDA.dataAsset.claim.votingAddress;
+      const PDA_check: any = lodash.find(PDAs, (PDA_check) => {
+        return (
+          PDA_check.dataAsset.claim.pdaType === 'citizen' &&
+          PDA_check.dataAsset.claim.pdaSubtype === 'POKT DAO' &&
+          PDA_check.dataAsset.owner.gatewayId === PDA.dataAsset.owner.gatewayId
+        );
+      });
+      if (PDA_check && !(GATEWAY_ID in GIDToEthVotingAddr)) {
+        GIDToEthVotingAddr[GATEWAY_ID] =
+          PDA_check.dataAsset.claim.votingAddress;
       }
 
       if (GATEWAY_ID in GIDToEthVotingAddr) {
