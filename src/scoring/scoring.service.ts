@@ -207,9 +207,9 @@ export class ScoringService {
 
       const GATEWAY_ID = PDA.dataAsset.owner.gatewayId;
       const PDA_TYPE = PDA.dataAsset.claim.pdaType;
-      const ETH_VOTING_ADDR = GIDToEthVotingAddr[GATEWAY_ID];
 
       if (GATEWAY_ID in GIDToEthVotingAddr) {
+        const ETH_VOTING_ADDR = GIDToEthVotingAddr[GATEWAY_ID];
         // Create empty object for new EthVotingaddress
         this.appendETHVotingAddr(scoresOutput, ETH_VOTING_ADDR);
 
