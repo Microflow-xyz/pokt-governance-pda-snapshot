@@ -210,7 +210,7 @@ export class ScoringService {
 
       if (GATEWAY_ID in GIDToEthVotingAddr) {
         const ETH_VOTING_ADDR = GIDToEthVotingAddr[GATEWAY_ID];
-        // Create empty object for new EthVotingaddress
+        // Create empty object for new EthVotingAddress
         this.appendETHVotingAddr(scoresOutput, ETH_VOTING_ADDR);
 
         if (PDA_TYPE === 'citizen') {
