@@ -197,7 +197,12 @@ export class ScoringService {
         PDA_TYPE === 'citizen' &&
         PDA.dataAsset.claim.pdaSubtype === 'POKT DAO'
       ) {
-        GIDToEthVotingAddr[GATEWAY_ID] = PDA.dataAsset.claim.votingAddress;
+        const ETHWalletAddr = PDA.dataAsset.claim.votingAddress;
+
+        // TODO: validate ETH wallet address format
+        if (typeof ETHWalletAddr === 'string' && ETHWalletAddr.length > 0) {
+          GIDToEthVotingAddr[GATEWAY_ID] = ETHWalletAddr;
+        }
       }
     }
 
