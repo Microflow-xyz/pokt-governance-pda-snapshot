@@ -68,7 +68,7 @@ export class ScoringService {
       let hasDAOBadge: boolean = false,
         hasDNABadge: boolean = false;
 
-      // check exists of badges
+      // Check exists of badges
       for (let index = 0; index < pointer.PDAs.length; index++) {
         const PDASubType = pointer.PDAs[index].dataAsset.claim.pdaSubtype;
 
@@ -84,7 +84,7 @@ export class ScoringService {
         }
       }
 
-      // assign point when all badges achieved
+      // Assign point when all badges achieved
       if (hasDAOBadge && hasDNABadge) {
         pointer.point = 1;
       }
@@ -185,9 +185,8 @@ export class ScoringService {
   calculateScores(PDAs: Array<IssuedPDA>): PDAScores<ScoringDomainBlock> {
     const scoresOutput: PDAScores<ScoringDomainBlock> = {};
     const GIDToEthVotingAddr: Record<string, string> = {};
-    const canBeScoredPDAs: Array<IssuedPDA> = [];
 
-    // find voting address and PDAs that can be scored
+    // Find voting address and PDAs that can be scored
     for (let index = 0; index < PDAs.length; index++) {
       const PDA = PDAs[index];
 
@@ -198,45 +197,48 @@ export class ScoringService {
         PDA_TYPE === 'citizen' &&
         PDA.dataAsset.claim.pdaSubtype === 'POKT DAO'
       ) {
-        GIDToEthVotingAddr[GATEWAY_ID] = PDA.dataAsset.claim.votingAddress;
-      }
+        const ETHWalletAddr = PDA.dataAsset.claim.votingAddress;
 
-      if (GATEWAY_ID in GIDToEthVotingAddr) {
-        canBeScoredPDAs.push(PDA);
+        // TODO: validate ETH wallet address format
+        if (typeof ETHWalletAddr === 'string' && ETHWalletAddr.length > 0) {
+          GIDToEthVotingAddr[GATEWAY_ID] = ETHWalletAddr;
+        }
       }
     }
 
-    // calculate scores of PDAs that can be scored
-    for (let index = 0; index < canBeScoredPDAs.length; index++) {
-      const PDA = canBeScoredPDAs[index];
+    // Calculate scores of PDAs that can be scored
+    for (let index = 0; index < PDAs.length; index++) {
+      const PDA = PDAs[index];
 
       const GATEWAY_ID = PDA.dataAsset.owner.gatewayId;
       const PDA_TYPE = PDA.dataAsset.claim.pdaType;
-      const ETH_VOTING_ADDR = GIDToEthVotingAddr[GATEWAY_ID];
 
-      // Create empty object for new gatewayID
-      this.appendETHVotingAddr(scoresOutput, ETH_VOTING_ADDR);
+      if (GATEWAY_ID in GIDToEthVotingAddr) {
+        const ETH_VOTING_ADDR = GIDToEthVotingAddr[GATEWAY_ID];
+        // Create empty object for new EthVotingAddress
+        this.appendETHVotingAddr(scoresOutput, ETH_VOTING_ADDR);
 
-      if (PDA_TYPE === 'citizen') {
-        // Create empty object with initial values for citizen domain
-        this.appendDomainBlock(scoresOutput, ETH_VOTING_ADDR, PDA_TYPE);
-        // calculate point and append PDAs
-        this.calculateCitizensPoint(scoresOutput, ETH_VOTING_ADDR, PDA);
-      } else if (PDA_TYPE === 'builder') {
-        // Create empty object with initial values for builder domain
-        this.appendDomainBlock(scoresOutput, ETH_VOTING_ADDR, PDA_TYPE);
-        // Calculate point and append PDAs
-        this.calculateBuildersPoint(scoresOutput, ETH_VOTING_ADDR, PDA);
-      } else if (PDA_TYPE === 'staker') {
-        // Create empty object with initial values for staker domain
-        this.appendDomainBlock(scoresOutput, ETH_VOTING_ADDR, PDA_TYPE);
-        // Calculate point and append PDAs
-        this.calculateStakersPoint(scoresOutput, ETH_VOTING_ADDR, PDA);
-      } else {
-        this.logger.error(
-          `Unknown PDA type (${PDA_TYPE}) exists`,
-          ScoringService.name,
-        );
+        if (PDA_TYPE === 'citizen') {
+          // Create empty object with initial values for citizen domain
+          this.appendDomainBlock(scoresOutput, ETH_VOTING_ADDR, PDA_TYPE);
+          // Calculate point and append PDAs
+          this.calculateCitizensPoint(scoresOutput, ETH_VOTING_ADDR, PDA);
+        } else if (PDA_TYPE === 'builder') {
+          // Create empty object with initial values for builder domain
+          this.appendDomainBlock(scoresOutput, ETH_VOTING_ADDR, PDA_TYPE);
+          // Calculate point and append PDAs
+          this.calculateBuildersPoint(scoresOutput, ETH_VOTING_ADDR, PDA);
+        } else if (PDA_TYPE === 'staker') {
+          // Create empty object with initial values for staker domain
+          this.appendDomainBlock(scoresOutput, ETH_VOTING_ADDR, PDA_TYPE);
+          // Calculate point and append PDAs
+          this.calculateStakersPoint(scoresOutput, ETH_VOTING_ADDR, PDA);
+        } else {
+          this.logger.error(
+            `Unknown PDA type (${PDA_TYPE}) exists`,
+            ScoringService.name,
+          );
+        }
       }
     }
 
