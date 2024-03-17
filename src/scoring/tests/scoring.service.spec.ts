@@ -80,13 +80,13 @@ describe('ScoringService', () => {
   describe('appendDomainBlock', () => {
     let scoresOutput: PDAScores<ScoringDomainBlock>;
     let domain: PDAType;
-    let gatewayID: string;
+    let ETHVotingAddr: string;
 
     beforeEach(() => {
       scoresOutput = {
-        gatewayID: {},
+        ETHVotingAddr: {},
       };
-      gatewayID = 'gatewayID';
+      ETHVotingAddr = 'ETHVotingAddr';
     });
 
     test('Should be defined', () => {
@@ -96,39 +96,45 @@ describe('ScoringService', () => {
     test('should create a "citizen" domain block with correct parameters', () => {
       // Arrange
       domain = 'citizen';
-      scoring['appendDomainBlock'](scoresOutput, gatewayID, domain);
+      scoring['appendDomainBlock'](scoresOutput, ETHVotingAddr, domain);
       // Act
-      expect(scoresOutput[gatewayID].citizen).toBeDefined();
-      expect(scoresOutput[gatewayID].builder).toBeUndefined();
-      expect(scoresOutput[gatewayID].staker).toBeUndefined();
-      expect(scoresOutput[gatewayID].citizen).toEqual({ point: 0, PDAs: [] });
+      expect(scoresOutput[ETHVotingAddr].citizen).toBeDefined();
+      expect(scoresOutput[ETHVotingAddr].builder).toBeUndefined();
+      expect(scoresOutput[ETHVotingAddr].staker).toBeUndefined();
+      expect(scoresOutput[ETHVotingAddr].citizen).toEqual({
+        point: 0,
+        PDAs: [],
+      });
     });
     test('should create a "builder" domain block with correct parameters', () => {
       // Arrange
       domain = 'builder';
       // Act
-      scoring['appendDomainBlock'](scoresOutput, gatewayID, domain);
+      scoring['appendDomainBlock'](scoresOutput, ETHVotingAddr, domain);
       // Assert
-      expect(scoresOutput[gatewayID].builder).toBeDefined();
-      expect(scoresOutput[gatewayID].citizen).toBeUndefined();
-      expect(scoresOutput[gatewayID].staker).toBeUndefined();
-      expect(scoresOutput[gatewayID].builder).toEqual({ point: 0, PDAs: [] });
+      expect(scoresOutput[ETHVotingAddr].builder).toBeDefined();
+      expect(scoresOutput[ETHVotingAddr].citizen).toBeUndefined();
+      expect(scoresOutput[ETHVotingAddr].staker).toBeUndefined();
+      expect(scoresOutput[ETHVotingAddr].builder).toEqual({
+        point: 0,
+        PDAs: [],
+      });
     });
     test('should create a "staker" domain block with correct parameters', () => {
       // Arrange
       domain = 'staker';
       // Act
-      scoring['appendDomainBlock'](scoresOutput, gatewayID, domain);
+      scoring['appendDomainBlock'](scoresOutput, ETHVotingAddr, domain);
       // Assert
-      expect(scoresOutput[gatewayID].staker).toBeDefined();
-      expect(scoresOutput[gatewayID].citizen).toBeUndefined();
-      expect(scoresOutput[gatewayID].builder).toBeUndefined();
-      expect(scoresOutput[gatewayID][domain]).toEqual({});
+      expect(scoresOutput[ETHVotingAddr].staker).toBeDefined();
+      expect(scoresOutput[ETHVotingAddr].citizen).toBeUndefined();
+      expect(scoresOutput[ETHVotingAddr].builder).toBeUndefined();
+      expect(scoresOutput[ETHVotingAddr][domain]).toEqual({});
     });
-    test('Should not append domain block if domain exists in gatewayID', () => {
+    test('Should not append domain block if domain exists in ETHVotingAddr', () => {
       // Arrange
       scoresOutput = {
-        gatewayID: {
+        ETHVotingAddr: {
           citizen: {
             point: 17,
             PDAs: [],
@@ -137,9 +143,9 @@ describe('ScoringService', () => {
       };
       domain = 'citizen';
       // Act
-      scoring['appendDomainBlock'](scoresOutput, gatewayID, domain);
+      scoring['appendDomainBlock'](scoresOutput, ETHVotingAddr, domain);
       // Assert
-      expect(scoresOutput[gatewayID][domain]).toEqual({
+      expect(scoresOutput[ETHVotingAddr][domain]).toEqual({
         point: 17,
         PDAs: [],
       });
@@ -147,14 +153,14 @@ describe('ScoringService', () => {
   });
 
   describe('appendStackerSubBlock', () => {
-    let gatewayID: string;
+    let ETHVotingAddr: string;
     let scoresOutput: PDAScores<ScoringDomainBlock>;
     let subType: Lowercase<StakerPDASubType>;
 
     beforeEach(() => {
-      gatewayID = 'gatewayID';
+      ETHVotingAddr = 'ETHVotingAddr';
       scoresOutput = {
-        gatewayID: {
+        ETHVotingAddr: {
           staker: {},
         },
       };
@@ -181,7 +187,7 @@ describe('ScoringService', () => {
         },
       };
       scoresOutput = {
-        gatewayID: {
+        ETHVotingAddr: {
           staker: {
             validator: {
               point: 17,
@@ -191,46 +197,46 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
+      scoring['appendStackerSubBlock'](scoresOutput, ETHVotingAddr, subType);
       // Assert
-      expect(scoresOutput[gatewayID].staker[subType]).toEqual({
+      expect(scoresOutput[ETHVotingAddr].staker[subType]).toEqual({
         point: 17,
         PDAs: [PDA],
       });
-      expect(scoresOutput[gatewayID].staker.validator).toBeDefined();
+      expect(scoresOutput[ETHVotingAddr].staker.validator).toBeDefined();
     });
     test("should create a Sub-block with type 'validator'", () => {
       // Act
-      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
+      scoring['appendStackerSubBlock'](scoresOutput, ETHVotingAddr, subType);
       // Assert
-      expect(scoresOutput[gatewayID].staker).toEqual({
+      expect(scoresOutput[ETHVotingAddr].staker).toEqual({
         validator: { PDAs: [], point: 0 },
       });
-      expect(scoresOutput[gatewayID].staker.validator).toBeDefined();
-      expect(scoresOutput[gatewayID].staker.gateway).toBeUndefined();
+      expect(scoresOutput[ETHVotingAddr].staker.validator).toBeDefined();
+      expect(scoresOutput[ETHVotingAddr].staker.gateway).toBeUndefined();
     });
     test("should create a Sub-block with type 'gateway'", () => {
       // Arrange
       subType = 'gateway';
       // Act
-      scoring['appendStackerSubBlock'](scoresOutput, gatewayID, subType);
+      scoring['appendStackerSubBlock'](scoresOutput, ETHVotingAddr, subType);
       // Assert
-      expect(scoresOutput[gatewayID].staker).toEqual({
+      expect(scoresOutput[ETHVotingAddr].staker).toEqual({
         gateway: { PDAs: [], point: 0 },
       });
-      expect(scoresOutput[gatewayID].staker.gateway).toBeDefined();
-      expect(scoresOutput[gatewayID].staker.validator).toBeUndefined();
+      expect(scoresOutput[ETHVotingAddr].staker.gateway).toBeDefined();
+      expect(scoresOutput[ETHVotingAddr].staker.validator).toBeUndefined();
     });
   });
 
   describe('calculateCitizensPoint', () => {
     let scoresOutput: PDAScores<ScoringDomainBlock>;
-    let gatewayID: string;
+    let ETHVotingAddr: string;
     let PDA: IssuedPDA;
 
     beforeEach(() => {
       scoresOutput = {
-        gatewayID: {
+        ETHVotingAddr: {
           citizen: {
             point: 0,
             PDAs: [],
@@ -251,7 +257,7 @@ describe('ScoringService', () => {
           },
         },
       };
-      gatewayID = 'gatewayID';
+      ETHVotingAddr = 'ETHVotingAddr';
     });
 
     test('Should be defined', () => {
@@ -260,19 +266,19 @@ describe('ScoringService', () => {
     });
     test('Should store related PDA', () => {
       // Act
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateCitizensPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      expect(scoresOutput[gatewayID].citizen.PDAs).toContain(PDA);
-      expect(scoresOutput[gatewayID].citizen.PDAs[0]).toEqual(PDA);
+      expect(scoresOutput[ETHVotingAddr].citizen.PDAs).toContain(PDA);
+      expect(scoresOutput[ETHVotingAddr].citizen.PDAs[0]).toEqual(PDA);
     });
     test('Point should be 0 when citizen has no "POKT DNA"', () => {
       // Act
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateCitizensPoint'](scoresOutput, ETHVotingAddr, PDA);
+      scoring['calculateCitizensPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      expect(scoresOutput[gatewayID].citizen.PDAs).toContain(PDA);
-      expect(scoresOutput[gatewayID].citizen.PDAs.length).toEqual(2);
-      expect(scoresOutput[gatewayID].citizen.point).toEqual(0);
+      expect(scoresOutput[ETHVotingAddr].citizen.PDAs).toContain(PDA);
+      expect(scoresOutput[ETHVotingAddr].citizen.PDAs.length).toEqual(2);
+      expect(scoresOutput[ETHVotingAddr].citizen.point).toEqual(0);
     });
     test('Point should be 0 when citizen has no "POKT DAO"', () => {
       // Arrange
@@ -290,16 +296,16 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateCitizensPoint'](scoresOutput, ETHVotingAddr, PDA);
+      scoring['calculateCitizensPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      expect(scoresOutput[gatewayID].citizen.PDAs).toContain(PDA);
-      expect(scoresOutput[gatewayID].citizen.PDAs.length).toEqual(2);
-      expect(scoresOutput[gatewayID].citizen.point).toEqual(0);
+      expect(scoresOutput[ETHVotingAddr].citizen.PDAs).toContain(PDA);
+      expect(scoresOutput[ETHVotingAddr].citizen.PDAs.length).toEqual(2);
+      expect(scoresOutput[ETHVotingAddr].citizen.point).toEqual(0);
     });
     test('Point should be 1 when citizen has both "POKT DAO" and "POKT DNA"', () => {
       // Arrange
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateCitizensPoint'](scoresOutput, ETHVotingAddr, PDA);
       PDA = {
         status: 'Valid',
         dataAsset: {
@@ -314,10 +320,10 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateCitizensPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      expect(scoresOutput[gatewayID].citizen.PDAs.length).toEqual(2);
-      expect(scoresOutput[gatewayID].citizen.point).toEqual(1);
+      expect(scoresOutput[ETHVotingAddr].citizen.PDAs.length).toEqual(2);
+      expect(scoresOutput[ETHVotingAddr].citizen.point).toEqual(1);
     });
     test('Should call error from logger when pdaSubtype is wrong', () => {
       // Arrange
@@ -335,7 +341,7 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['calculateCitizensPoint'](scoresOutput, gatewayID, fakePDA);
+      scoring['calculateCitizensPoint'](scoresOutput, ETHVotingAddr, fakePDA);
       // Assert
       expect(logger.error).toHaveBeenCalledWith(
         `Invalid PDA sub type (fake pdaSubtype) for citizen`,
@@ -346,7 +352,7 @@ describe('ScoringService', () => {
 
   describe('calculateBuildersPoint', () => {
     let scoresOutput: PDAScores<ScoringDomainBlock>;
-    let gatewayID: string;
+    let ETHVotingAddr: string;
     let PDA: IssuedPDA;
 
     beforeEach(() => {
@@ -364,14 +370,14 @@ describe('ScoringService', () => {
         },
       };
       scoresOutput = {
-        gatewayID: {
+        ETHVotingAddr: {
           builder: {
             point: 2,
             PDAs: [PDA],
           },
         },
       };
-      gatewayID = 'gatewayID';
+      ETHVotingAddr = 'ETHVotingAddr';
     });
 
     test('Should be defined', () => {
@@ -380,16 +386,16 @@ describe('ScoringService', () => {
     });
     test('Should store related PDA', () => {
       // Act
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateBuildersPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      expect(scoresOutput[gatewayID].builder.PDAs).toContain(PDA);
-      expect(scoresOutput[gatewayID].builder.PDAs.length).toEqual(2);
-      expect(scoresOutput[gatewayID].builder.point).toEqual(2);
+      expect(scoresOutput[ETHVotingAddr].builder.PDAs).toContain(PDA);
+      expect(scoresOutput[ETHVotingAddr].builder.PDAs.length).toEqual(2);
+      expect(scoresOutput[ETHVotingAddr].builder.point).toEqual(2);
     });
     test('Should add PDA if it does not exist', () => {
       // Arrange
       scoresOutput = {
-        gatewayID: {
+        ETHVotingAddr: {
           builder: {
             point: 2,
             PDAs: [],
@@ -397,11 +403,11 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateBuildersPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      expect(scoresOutput[gatewayID].builder.PDAs).toContain(PDA);
-      expect(scoresOutput[gatewayID].builder.PDAs.length).toEqual(1);
-      expect(scoresOutput[gatewayID].builder.point).toEqual(2);
+      expect(scoresOutput[ETHVotingAddr].builder.PDAs).toContain(PDA);
+      expect(scoresOutput[ETHVotingAddr].builder.PDAs.length).toEqual(1);
+      expect(scoresOutput[ETHVotingAddr].builder.point).toEqual(2);
     });
     test('Should update max value for each builder subType', () => {
       // Arrange
@@ -419,9 +425,9 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateBuildersPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      const pointer = scoresOutput[gatewayID].builder;
+      const pointer = scoresOutput[ETHVotingAddr].builder;
       expect(pointer.point).toEqual(3);
       expect(pointer.PDAs.length).toEqual(2);
     });
@@ -440,7 +446,7 @@ describe('ScoringService', () => {
           },
         },
       };
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateBuildersPoint'](scoresOutput, ETHVotingAddr, PDA);
       PDA = {
         status: 'Valid',
         dataAsset: {
@@ -455,9 +461,9 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateBuildersPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      const pointer = scoresOutput[gatewayID].builder;
+      const pointer = scoresOutput[ETHVotingAddr].builder;
       expect(pointer.point).toEqual(8);
       expect(pointer.PDAs.length).toEqual(3);
     });
@@ -477,9 +483,9 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateBuildersPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      const pointer = scoresOutput[gatewayID].builder;
+      const pointer = scoresOutput[ETHVotingAddr].builder;
       expect(pointer.point).toEqual(10);
       expect(pointer.PDAs.length).toEqual(2);
     });
@@ -499,7 +505,7 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['calculateBuildersPoint'](scoresOutput, gatewayID, fakePDA);
+      scoring['calculateBuildersPoint'](scoresOutput, ETHVotingAddr, fakePDA);
       // Assert
       expect(logger.error).toHaveBeenCalledWith(
         `Invalid PDA sub type (fake pdaSubtype) for builder`,
@@ -510,7 +516,7 @@ describe('ScoringService', () => {
 
   describe('calculateStakersPoint', () => {
     let scoresOutput: PDAScores<ScoringDomainBlock>;
-    let gatewayID: string;
+    let ETHVotingAddr: string;
     let PDA: IssuedPDA;
 
     beforeEach(() => {
@@ -529,7 +535,7 @@ describe('ScoringService', () => {
         },
       };
       scoresOutput = {
-        gatewayID: {
+        ETHVotingAddr: {
           staker: {
             validator: {
               point: 0,
@@ -538,7 +544,7 @@ describe('ScoringService', () => {
           },
         },
       };
-      gatewayID = 'gatewayID';
+      ETHVotingAddr = 'ETHVotingAddr';
     });
 
     test('Should be defined', () => {
@@ -547,23 +553,23 @@ describe('ScoringService', () => {
     });
     test('Should store related PDA', () => {
       // Act
-      scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateStakersPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
-      expect(scoresOutput[gatewayID].staker.validator.PDAs).toContain(PDA);
-      expect(scoresOutput[gatewayID].staker.validator.PDAs.length).toEqual(1);
+      expect(scoresOutput[ETHVotingAddr].staker.validator.PDAs).toContain(PDA);
+      expect(scoresOutput[ETHVotingAddr].staker.validator.PDAs.length).toEqual(1);
     });
     test(`The square root of the sum of PDA points should be assigned as the point value
           when the PDA_SUB_TYPE is equal to 'validator'`, () => {
       // Act
-      scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
-      const pointer = scoresOutput[gatewayID].staker.validator;
+      scoring['calculateStakersPoint'](scoresOutput, ETHVotingAddr, PDA);
+      const pointer = scoresOutput[ETHVotingAddr].staker.validator;
       // Assert
       expect(pointer.point).toEqual(2);
     });
     test(`Sum of PDA points should be assigned as the point value
           when the PDA_SUB_TYPE is equal to 'gateway'`, () => {
       // Arrange
-      PDA = {
+      const GatewayPDA: IssuedPDA = {
         status: 'Valid',
         dataAsset: {
           claim: {
@@ -578,35 +584,54 @@ describe('ScoringService', () => {
         },
       };
       scoresOutput = {
-        gatewayID: {
+        ETHVotingAddr: {
           staker: {
             gateway: {
               point: 4,
-              PDAs: [
-                {
-                  status: 'Valid',
-                  dataAsset: {
-                    claim: {
-                      point: 4,
-                      pdaType: 'staker',
-                      pdaSubtype: 'Gateway',
-                      type: 'custodian',
-                    },
-                    owner: {
-                      gatewayId: 'gatewayID',
-                    },
-                  },
-                },
-              ],
+              PDAs: [GatewayPDA],
             },
           },
         },
       };
       // Act
-      scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
+      scoring['calculateStakersPoint'](scoresOutput, ETHVotingAddr, GatewayPDA);
       // Assert
-      const pointer = scoresOutput[gatewayID].staker.gateway;
+      const pointer = scoresOutput[ETHVotingAddr].staker.gateway;
       expect(pointer.point).toEqual(8);
+      expect(pointer.PDAs.length).toEqual(2);
+    });
+    test(`Sum of PDA points should be assigned as the point value
+          when the PDA_SUB_TYPE is equal to 'gateway'`, () => {
+      // Arrange
+      const LPPDA: IssuedPDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 10200.483985054,
+            pdaType: 'staker',
+            pdaSubtype: 'Liquidity Provider',
+            type: 'custodian',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
+      scoresOutput = {
+        ETHVotingAddr: {
+          staker: {
+            'liquidity provider': {
+              point: 10200.483985054,
+              PDAs: [LPPDA],
+            },
+          },
+        },
+      };
+      // Act
+      scoring['calculateStakersPoint'](scoresOutput, ETHVotingAddr, LPPDA);
+      // Assert
+      const pointer = scoresOutput[ETHVotingAddr].staker['liquidity provider'];
+      expect(pointer.point).toEqual(20400.967970108);
       expect(pointer.PDAs.length).toEqual(2);
     });
     test('Should call error from logger when pdaSubtype is wrong', () => {
@@ -626,7 +651,7 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['calculateStakersPoint'](scoresOutput, gatewayID, fakePDA);
+      scoring['calculateStakersPoint'](scoresOutput, ETHVotingAddr, fakePDA);
       // Assert
       expect(logger.error).toHaveBeenCalledWith(
         `Invalid PDA sub type (fake pdasubtype) for staker`,
