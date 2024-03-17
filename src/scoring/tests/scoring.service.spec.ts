@@ -29,24 +29,24 @@ describe('ScoringService', () => {
     expect(scoring).toBeDefined();
   });
 
-  describe('appendGatewayID', () => {
-    let ScoresOutput: PDAScores<ScoringDomainBlock>;
-    let gatewayID: string;
+  describe('appendETHVotingAddr', () => {
+    let scoresOutput: PDAScores<ScoringDomainBlock>;
+    let ETHVotingAddr: string;
     beforeEach(() => {
-      ScoresOutput = {};
-      gatewayID = 'gatewayID';
+      scoresOutput = {};
+      ETHVotingAddr = 'ETHVotingAddr';
     });
-    test('Should append a new gatewayID to scoresOutput', () => {
+    test('Should append a new appendETHVotingAddr to scoresOutput', () => {
       // Act
-      scoring['appendGatewayID'](ScoresOutput, gatewayID);
+      scoring['appendETHVotingAddr'](scoresOutput, ETHVotingAddr);
       // Assert
-      expect(ScoresOutput).toHaveProperty(gatewayID);
-      expect(ScoresOutput[gatewayID]).toEqual({});
+      expect(scoresOutput).toHaveProperty(ETHVotingAddr);
+      expect(scoresOutput[ETHVotingAddr]).toEqual({});
     });
-    test('Should not append an existing gatewayID to scoresOutput', () => {
+    test('Should not append an existing ETHVotingAddr to scoresOutput', () => {
       // Arrange
       const scoresOutput = {
-        gatewayID: {
+        ETHVotingAddr: {
           citizen: {
             point: 0,
             PDAs: [],
@@ -54,26 +54,26 @@ describe('ScoringService', () => {
         },
       };
       // Act
-      scoring['appendGatewayID'](scoresOutput, gatewayID);
+      scoring['appendETHVotingAddr'](scoresOutput, ETHVotingAddr);
       // Assert
-      expect(scoresOutput[gatewayID]).toEqual({
+      expect(scoresOutput[ETHVotingAddr]).toEqual({
         citizen: {
           point: 0,
           PDAs: [],
         },
       });
     });
-    test('Append multiple GatewayIDs to scoresOutput', () => {
+    test('Append multiple ETHVotingAddr to scoresOutput', () => {
       // Arrange
-      const gatewayID2 = 'gatewayID2';
+      const ETHVotingAddr2 = 'ETHVotingAddr2';
       // Act
-      scoring['appendGatewayID'](ScoresOutput, gatewayID);
-      scoring['appendGatewayID'](ScoresOutput, gatewayID2);
+      scoring['appendETHVotingAddr'](scoresOutput, ETHVotingAddr);
+      scoring['appendETHVotingAddr'](scoresOutput, ETHVotingAddr2);
       // Assert
-      expect(ScoresOutput).toHaveProperty(gatewayID);
-      expect(ScoresOutput).toHaveProperty(gatewayID2);
-      expect(ScoresOutput[gatewayID]).toEqual({});
-      expect(ScoresOutput[gatewayID2]).toEqual({});
+      expect(scoresOutput).toHaveProperty(ETHVotingAddr);
+      expect(scoresOutput).toHaveProperty(ETHVotingAddr2);
+      expect(scoresOutput[ETHVotingAddr]).toEqual({});
+      expect(scoresOutput[ETHVotingAddr2]).toEqual({});
     });
   });
 
@@ -244,6 +244,7 @@ describe('ScoringService', () => {
             point: 17,
             pdaType: 'citizen',
             pdaSubtype: 'POKT DAO',
+            votingAddress: 'votingAddress',
           },
           owner: {
             gatewayId: 'gatewayID',
@@ -552,7 +553,7 @@ describe('ScoringService', () => {
       expect(scoresOutput[gatewayID].staker.validator.PDAs.length).toEqual(1);
     });
     test(`The square root of the sum of PDA points should be assigned as the point value
- when the PDA_SUB_TYPE is equal to 'validator'`, () => {
+          when the PDA_SUB_TYPE is equal to 'validator'`, () => {
       // Act
       scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
       const pointer = scoresOutput[gatewayID].staker.validator;
@@ -560,7 +561,7 @@ describe('ScoringService', () => {
       expect(pointer.point).toEqual(2);
     });
     test(`Sum of PDA points should be assigned as the point value
- when the PDA_SUB_TYPE is equal to 'gateway'`, () => {
+          when the PDA_SUB_TYPE is equal to 'gateway'`, () => {
       // Arrange
       PDA = {
         status: 'Valid',
@@ -608,31 +609,6 @@ describe('ScoringService', () => {
       expect(pointer.point).toEqual(8);
       expect(pointer.PDAs.length).toEqual(2);
     });
-    test(`Should call warm method from logger
-when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
-      // Arrange
-      PDA = {
-        status: 'Valid',
-        dataAsset: {
-          claim: {
-            point: 4,
-            pdaType: 'staker',
-            pdaSubtype: 'Liquidity Provider',
-            type: 'custodian',
-          },
-          owner: {
-            gatewayId: 'gatewayID',
-          },
-        },
-      };
-      // Act
-      scoring['calculateStakersPoint'](scoresOutput, gatewayID, PDA);
-      // Assert
-      expect(logger.warn).toHaveBeenCalledWith(
-        `Skipped PDA sub type (liquidity provider) for staker`,
-        ScoringService.name,
-      );
-    });
     test('Should call error from logger when pdaSubtype is wrong', () => {
       //Arange
       const fakePDA: any = {
@@ -667,9 +643,10 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
         status: 'Valid',
         dataAsset: {
           claim: {
-            point: 5,
-            pdaType: 'builder',
-            pdaSubtype: 'Socket Builder',
+            point: 17,
+            pdaType: 'citizen',
+            pdaSubtype: 'POKT DAO',
+            votingAddress: 'votingAddress',
           },
           owner: {
             gatewayId: 'gatewayID',
@@ -682,47 +659,17 @@ when PDA_SUB_TYPE is equal to "liquidity provider"`, () => {
       // Assert
       expect(scoring.calculateScores).toBeDefined();
     });
-    test(`Should call appendGatewayID and add gatewayID to scoresOutput`, () => {
+    test(`Should call appendETHVotingAddr and add ETHVotingAddr to scoresOutput
+          for a user that has "citizen" PDA with "DAO" subType`, () => {
       // Act
       returnValue = scoring.calculateScores([PDA]);
       // Assert
-      expect(returnValue['gatewayID']).toBeDefined();
-    });
-    test("Should return {} if PDA is not 'Valid'", () => {
-      // Arrange
-      PDA = {
-        status: 'Expired',
-        dataAsset: {
-          claim: {
-            point: 4,
-            pdaType: 'staker',
-            pdaSubtype: 'Liquidity Provider',
-            type: 'custodian',
-          },
-          owner: {
-            gatewayId: 'gatewayID',
-          },
-        },
-      };
-      // Act
-      returnValue = scoring.calculateScores([PDA]);
-      // Assert
-      expect(returnValue).toEqual({});
-    });
-
-    test('Should call appendGatewayID method and create empty object for new gatewayID', async () => {
-      // Arrange
-      jest.spyOn(scoring as any, 'appendGatewayID');
-      // Act
-      returnValue = scoring.calculateScores([PDA]);
-      // Assert
-      expect(scoring['appendGatewayID']).toHaveBeenCalled();
-      expect(returnValue['gatewayID']).toBeDefined();
+      expect(returnValue['votingAddress']).toBeDefined();
     });
 
     test(`Should call appendDomainBlock and calculateCitizensPoint
-when PDA_TYPE is 'citizen', then add PDA to scoresOutput,
- calculate points and append to scoresOutput`, () => {
+          when PDA_TYPE is 'citizen', then add PDA to scoresOutput,
+          calculate points and append to scoresOutput`, () => {
       // Arrange
       PDA = {
         status: 'Valid',
@@ -731,6 +678,7 @@ when PDA_TYPE is 'citizen', then add PDA to scoresOutput,
             point: 17,
             pdaType: 'citizen',
             pdaSubtype: 'POKT DAO',
+            votingAddress: 'votingAddress',
           },
           owner: {
             gatewayId: 'gatewayID',
@@ -739,7 +687,7 @@ when PDA_TYPE is 'citizen', then add PDA to scoresOutput,
       };
       // Act
       returnValue = scoring.calculateScores([PDA]);
-      const pointer = returnValue['gatewayID'];
+      const pointer = returnValue['votingAddress'];
       // Assert
       expect(pointer.citizen).toBeDefined();
       expect(pointer.citizen.point).toEqual(0);
@@ -749,30 +697,46 @@ when PDA_TYPE is 'citizen', then add PDA to scoresOutput,
     });
 
     test(`Should call appendDomainBlock and calculateBuildersPoint
-when PDA_TYPE is 'builder', then add PDA to scoresOutput, 
-calculate points and append to scoresOutput`, () => {
+          when PDA_TYPE is 'builder', then add PDA to scoresOutput, 
+          calculate points and append to scoresOutput for a user that 
+          has PDA with DAO Quest before`, () => {
+      // Arrange
+      const builderPDA: IssuedPDA = {
+        status: 'Valid',
+        dataAsset: {
+          claim: {
+            point: 2,
+            pdaType: 'builder',
+            pdaSubtype: 'Bounty Hunter',
+          },
+          owner: {
+            gatewayId: 'gatewayID',
+          },
+        },
+      };
       // Act
-      returnValue = scoring.calculateScores([PDA]);
-      const pointer = returnValue['gatewayID'];
+      returnValue = scoring.calculateScores([PDA, builderPDA]);
+      const pointer = returnValue['votingAddress'];
       // Assert
       expect(pointer.builder).toBeDefined();
-      expect(pointer.builder.point).toEqual(5);
+      expect(pointer.builder.point).toEqual(2);
       expect(pointer.builder.PDAs.length).toEqual(1);
-      expect(pointer.citizen).toBeUndefined();
+      expect(pointer.citizen).toBeDefined();
       expect(pointer.staker).toBeUndefined();
     });
 
     test(`Should call appendDomainBlock and calculateStakersPoint
-when PDA_TYPE is 'staker', then add PDA to scoresOutput,
-calculate points and append to scoresOutput`, () => {
+          when PDA_TYPE is 'staker', then add PDA to scoresOutput,
+          calculate points and append to scoresOutput for a user that 
+          has PDA with DAO Quest before`, () => {
       // Arrange
-      PDA = {
+      const stakerPDA: IssuedPDA = {
         status: 'Valid',
         dataAsset: {
           claim: {
             point: 4,
             pdaType: 'staker',
-            pdaSubtype: 'Gateway',
+            pdaSubtype: 'Validator',
             type: 'custodian',
           },
           owner: {
@@ -781,13 +745,13 @@ calculate points and append to scoresOutput`, () => {
         },
       };
       // Act
-      returnValue = scoring.calculateScores([PDA]);
-      const pointer = returnValue['gatewayID'];
+      returnValue = scoring.calculateScores([PDA, stakerPDA]);
+      const pointer = returnValue['votingAddress'];
       // Assert
-      expect(pointer.staker.gateway).toBeDefined();
-      expect(pointer.staker.gateway.point).toEqual(4);
-      expect(pointer.staker.gateway.PDAs.length).toEqual(1);
-      expect(pointer.citizen).toBeUndefined();
+      expect(pointer.staker.validator).toBeDefined();
+      expect(pointer.staker.validator.point).toEqual(2);
+      expect(pointer.staker.validator.PDAs.length).toEqual(1);
+      expect(pointer.citizen).toBeDefined();
       expect(pointer.builder).toBeUndefined();
     });
     test('Should call error from logger when pdaType is wrong', () => {
@@ -798,7 +762,7 @@ calculate points and append to scoresOutput`, () => {
           claim: {
             point: 4,
             pdaType: 'fake pdaType',
-            pdaSubtype: 'Gateway',
+            pdaSubtype: 'Validator',
             type: 'custodian',
           },
           owner: {
@@ -807,7 +771,7 @@ calculate points and append to scoresOutput`, () => {
         },
       };
       // Act
-      scoring.calculateScores([fakePDA]);
+      scoring.calculateScores([PDA, fakePDA]);
       // Assert
       expect(logger.error).toHaveBeenCalledWith(
         `Unknown PDA type (fake pdaType) exists`,
