@@ -1,6 +1,7 @@
 export interface StakerDomainBlock<Block> {
   validator?: Block;
   gateway?: Block;
+  'liquidity provider'?: Block;
 }
 
 export interface PDAScores<Block> {

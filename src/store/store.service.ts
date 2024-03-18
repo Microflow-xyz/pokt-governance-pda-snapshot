@@ -22,14 +22,16 @@ export class StoreService {
       { name: 'Data-ID', value: 'PDAs' },
     ];
 
-    for (const gatewayID in scores) {
-      if (Object.prototype.hasOwnProperty.call(scores, gatewayID)) {
-        const gatewayBlock = scores[gatewayID];
+    for (const ETHWalletAddr in scores) {
+      if (Object.prototype.hasOwnProperty.call(scores, ETHWalletAddr)) {
+        const voterBlock = scores[ETHWalletAddr];
 
-        const citizenPDAs = gatewayBlock.citizen?.PDAs;
-        const builderPDAs = gatewayBlock.builder?.PDAs;
-        const validatorStakerPDAs = gatewayBlock.staker?.validator?.PDAs;
-        const gatewayStakerPDAs = gatewayBlock.staker?.gateway?.PDAs;
+        const citizenPDAs = voterBlock.citizen?.PDAs;
+        const builderPDAs = voterBlock.builder?.PDAs;
+        const validatorStakerPDAs = voterBlock.staker?.validator?.PDAs;
+        const gatewayStakerPDAs = voterBlock.staker?.gateway?.PDAs;
+        const liquidityProviderPDAs =
+          voterBlock.staker?.['liquidity provider']?.PDAs;
 
         const transactionIDs = await Promise.all([
           citizenPDAs?.length > 0
@@ -44,25 +46,40 @@ export class StoreService {
           gatewayStakerPDAs?.length > 0
             ? this.arweaveProvider.storeData(gatewayStakerPDAs, tags)
             : '',
+          liquidityProviderPDAs?.length > 0
+            ? this.arweaveProvider.storeData(liquidityProviderPDAs, tags)
+            : '',
         ]);
 
         scores as unknown as PDAScores<StoreDomainBlock>;
 
         if (citizenPDAs?.length > 0) {
-          (gatewayBlock.citizen.PDAs as unknown as string) =
-            arweaveBaseURL + transactionIDs[0];
+          (voterBlock.citizen.PDAs as unknown as string) = new URL(
+            transactionIDs[0],
+            arweaveBaseURL,
+          ).href;
         }
         if (builderPDAs?.length > 0) {
-          (gatewayBlock.builder.PDAs as unknown as string) =
-            arweaveBaseURL + transactionIDs[1];
+          (voterBlock.builder.PDAs as unknown as string) = new URL(
+            transactionIDs[1],
+            arweaveBaseURL,
+          ).href;
         }
         if (validatorStakerPDAs?.length > 0) {
-          (gatewayBlock.staker.validator.PDAs as unknown as string) =
-            arweaveBaseURL + transactionIDs[2];
+          (voterBlock.staker.validator.PDAs as unknown as string) = new URL(
+            transactionIDs[2],
+            arweaveBaseURL,
+          ).href;
         }
         if (gatewayStakerPDAs?.length > 0) {
-          (gatewayBlock.staker.gateway.PDAs as unknown as string) =
-            arweaveBaseURL + transactionIDs[3];
+          (voterBlock.staker.gateway.PDAs as unknown as string) = new URL(
+            transactionIDs[3],
+            arweaveBaseURL,
+          ).href;
+        }
+        if (liquidityProviderPDAs?.length > 0) {
+          (voterBlock.staker['liquidity provider'].PDAs as unknown as string) =
+            new URL(transactionIDs[4], arweaveBaseURL).href;
         }
       }
     }
@@ -85,6 +102,6 @@ export class StoreService {
       tags,
     );
 
-    return arweaveBaseURL + transaction_id;
+    return new URL(transaction_id, arweaveBaseURL).href;
   }
 }
