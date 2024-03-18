@@ -33,23 +33,23 @@ export class StoreService {
         const liquidityProviderPDAs =
           voterBlock.staker?.['liquidity provider']?.PDAs;
 
-        const transactionIDs = await Promise.all([
+        const transactionIDs = [
           citizenPDAs?.length > 0
-            ? this.arweaveProvider.storeData(citizenPDAs, tags)
+            ? await this.arweaveProvider.storeData(citizenPDAs, tags)
             : '',
           builderPDAs?.length > 0
-            ? this.arweaveProvider.storeData(builderPDAs, tags)
+            ? await this.arweaveProvider.storeData(builderPDAs, tags)
             : '',
           validatorStakerPDAs?.length > 0
-            ? this.arweaveProvider.storeData(validatorStakerPDAs, tags)
+            ? await this.arweaveProvider.storeData(validatorStakerPDAs, tags)
             : '',
           gatewayStakerPDAs?.length > 0
-            ? this.arweaveProvider.storeData(gatewayStakerPDAs, tags)
+            ? await this.arweaveProvider.storeData(gatewayStakerPDAs, tags)
             : '',
           liquidityProviderPDAs?.length > 0
-            ? this.arweaveProvider.storeData(liquidityProviderPDAs, tags)
+            ? await this.arweaveProvider.storeData(liquidityProviderPDAs, tags)
             : '',
-        ]);
+        ];
 
         scores as unknown as PDAScores<StoreDomainBlock>;
 

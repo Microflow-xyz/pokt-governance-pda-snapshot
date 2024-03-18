@@ -1,11 +1,15 @@
 import Irys from '@irys/sdk';
 import { Inject, Injectable } from '@nestjs/common';
+import { WinstonProvider } from '@common/winston/winston.provider';
 import { ArweaveTag } from './interfaces/arweave.interface';
 import { IRYS_CONNECTOR } from './arweave.constant';
 
 @Injectable()
 export class ArweaveProvider {
-  constructor(@Inject(IRYS_CONNECTOR) private readonly irys: Irys) {}
+  constructor(
+    @Inject(IRYS_CONNECTOR) private readonly irys: Irys,
+    private readonly logger: WinstonProvider,
+  ) {}
 
   /**
    * Calculate size of data in Bytes and return it
@@ -35,8 +39,11 @@ export class ArweaveProvider {
    */
   private async fundNodeBasedOnSize(size: number) {
     const amount = await this.irys.getPrice(size);
-
-    await this.irys.fund(amount);
+    this.logger.debug(
+      `Calculated amount of fund is ${amount}`,
+      ArweaveProvider.name,
+    );
+    await this.irys.fund(amount, 1.1);
   }
 
   /**
@@ -51,6 +58,11 @@ export class ArweaveProvider {
     tags: Array<ArweaveTag>,
   ): Promise<string> {
     const stringifyData = JSON.stringify(data);
+
+    this.logger.debug(
+      `Uploading data: ${stringifyData}\ntags: ${JSON.stringify(tags)}`,
+      ArweaveProvider.name,
+    );
 
     // fund to Node based on uploading data size
     const sizeOfData = this.calculateSizeOfData(stringifyData, tags);
