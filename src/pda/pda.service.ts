@@ -1,7 +1,6 @@
 import { HttpService } from '@nestjs/axios';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { reduce } from 'lodash';
 import { firstValueFrom } from 'rxjs';
 import { Pagination } from './interfaces/common.interface';
 import {
@@ -98,6 +97,7 @@ export class PDAService {
   }
 
   async getIssuedPDAs() {
+    const results: Array<IssuedPDA> = [];
     const ORG_GATEWAY_ID = this.config.get<string>('POKT_ORG_GATEWAY_ID');
 
     const pdaCountQuery = this.getIssuedPDACountGQL();
@@ -112,23 +112,28 @@ export class PDAService {
     );
 
     const partitions = this.pagination(countResponse.data.issuedPDAsCount);
-    const promises: Array<Promise<IssuedPDAsResponse>> = [];
 
-    for (let index = 0; index < partitions.length; index++) {
+    for (let p_idx = 0; p_idx < partitions.length; p_idx++) {
       const pdaVariables: IssuedPDAsVariables = {
         org_gateway_id: ORG_GATEWAY_ID,
-        ...partitions[index],
+        ...partitions[p_idx],
       };
 
-      promises.push(this.request<IssuedPDAsResponse>(pdaQuery, pdaVariables));
+      const response = await this.request<IssuedPDAsResponse>(
+        pdaQuery,
+        pdaVariables,
+      );
+      const PDAs = response.data.issuedPDAs;
+
+      for (let pda_idx = 0; pda_idx < PDAs.length; pda_idx++) {
+        const PDA = PDAs[pda_idx];
+
+        if (PDA.status === 'Valid' && PDA.dataAsset.claim.point > 0) {
+          results.push(PDA);
+        }
+      }
     }
 
-    return reduce<IssuedPDAsResponse, Array<IssuedPDA>>(
-      await Promise.all(promises),
-      (final, current) => {
-        return [...final, ...current.data.issuedPDAs];
-      },
-      [],
-    );
+    return results;
   }
 }
