@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER } from '@nestjs/core';
-import { ScheduleModule } from '@nestjs/schedule';
 import { format } from 'winston';
 import LokiTransport from 'winston-loki';
 import { AllExceptionsFilter } from '@common/filters/all-exception.filter';
@@ -48,7 +47,6 @@ import { CoreService } from './core.service';
       },
       inject: [ConfigService],
     }),
-    ScheduleModule.forRoot(),
     PDAModule,
     ScoringModule,
     StoreModule,
