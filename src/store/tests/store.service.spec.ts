@@ -389,11 +389,11 @@ describe('StoreService', () => {
       // Assert
       expect(arweave.storeData).toHaveBeenCalledWith(scores, tags);
     });
-    test('Should returtn "arweaveBaseURL + transaction_id" ', async () => {
+    test('Should returtn "http://example.com/transaction_id" ', async () => {
       // Act
       returnValue = await service.storeScores(scores);
       // Assert
-      expect(returnValue).toEqual('ARWEAVE_BASE_URL+transaction_id');
+      expect(returnValue).toEqual('http://example.com/transaction_id');
     });
   });
 });
