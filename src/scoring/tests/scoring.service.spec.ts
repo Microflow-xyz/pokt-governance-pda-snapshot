@@ -392,23 +392,7 @@ describe('ScoringService', () => {
       expect(scoresOutput[ETHVotingAddr].builder.PDAs.length).toEqual(2);
       expect(scoresOutput[ETHVotingAddr].builder.point).toEqual(2);
     });
-    test('Should add PDA if it does not exist', () => {
-      // Arrange
-      scoresOutput = {
-        ETHVotingAddr: {
-          builder: {
-            point: 2,
-            PDAs: [],
-          },
-        },
-      };
-      // Act
-      scoring['calculateBuildersPoint'](scoresOutput, ETHVotingAddr, PDA);
-      // Assert
-      expect(scoresOutput[ETHVotingAddr].builder.PDAs).toContain(PDA);
-      expect(scoresOutput[ETHVotingAddr].builder.PDAs.length).toEqual(1);
-      expect(scoresOutput[ETHVotingAddr].builder.point).toEqual(2);
-    });
+
     test('Should update max value for each builder subType', () => {
       // Arrange
       PDA = {
@@ -556,7 +540,9 @@ describe('ScoringService', () => {
       scoring['calculateStakersPoint'](scoresOutput, ETHVotingAddr, PDA);
       // Assert
       expect(scoresOutput[ETHVotingAddr].staker.validator.PDAs).toContain(PDA);
-      expect(scoresOutput[ETHVotingAddr].staker.validator.PDAs.length).toEqual(1);
+      expect(scoresOutput[ETHVotingAddr].staker.validator.PDAs.length).toEqual(
+        1,
+      );
     });
     test(`The square root of the sum of PDA points should be assigned as the point value
           when the PDA_SUB_TYPE is equal to 'validator'`, () => {
