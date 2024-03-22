@@ -154,7 +154,6 @@ describe('PDAService', () => {
   });
 
   describe('When pagination method called', () => {
-
     test("Should return pagination when max's value less or equal that 15", () => {
       // Assert
       expect(service['pagination'](14)).toEqual([{ take: 14, skip: 0 }]);
@@ -192,6 +191,7 @@ describe('PDAService', () => {
             point: 17,
             pdaType: 'citizen',
             pdaSubtype: 'POKT DAO',
+            votingAddress: 'votingAddress',
           },
           owner: {
             gatewayId: '17',
